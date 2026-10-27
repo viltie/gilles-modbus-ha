@@ -12,3 +12,57 @@ template:
         icon: mdi:silo
         state: "{{ (states('sensor.gilles_reg70') | float * 0.1) | round(1) }}"
         availability: "{{ states('sensor.gilles_reg70') | is_number }}"
+
+# Finnish status texts. The upstream German sensors stay unchanged because the upstream
+# automations and dashboard compare their values. Wording follows the Finnish Touch panel where known.
+  - sensor:
+      - name: "Gilles Polttovaihe"
+        unique_id: gilles_polttovaihe_fi
+        state: >
+          {% set c = states('sensor.gilles_brenn_phase_code') | int(-1) %}
+          {{ {0: 'Valmiustila', 1: 'Esituuletus', 3: 'Sytytys', 5: 'Myöhäinen sytytys',
+              6: 'Syttymisvaihe', 7: 'Lämmitys', 8: 'Loppuunpoltto', 9: 'Jäähdytys',
+              10: 'Koodi 10 (toiminta selvittämättä)'}.get(c, 'Tuntematon (koodi ' ~ c ~ ')') }}
+        icon: >
+          {% set c = states('sensor.gilles_brenn_phase_code') | int(-1) %}
+          {% if c == 0 %}mdi:power-standby{% elif c in [1,3,5,6,7] %}mdi:fire{% elif c == 8 %}mdi:fire-alert{% elif c == 9 %}mdi:snowflake-melt{% else %}mdi:help-circle{% endif %}
+        availability: "{{ states('sensor.gilles_brenn_phase_code') | is_number }}"
+
+      - name: "Gilles Kattilan tila"
+        unique_id: gilles_kattilan_tila_fi
+        state: >
+          {% set c = states('sensor.gilles_boiler_status_code') | int(-1) %}
+          {{ {1: 'Käsikäyttö', 3: 'Varaaja / kattila', 5: 'Automaatti'}.get(c, 'Tuntematon (koodi ' ~ c ~ ')') }}
+        icon: >
+          {% set c = states('sensor.gilles_boiler_status_code') | int(-1) %}
+          {% if c == 1 %}mdi:hand-back-right{% elif c == 3 %}mdi:water-boiler{% elif c == 5 %}mdi:cog{% else %}mdi:state-machine{% endif %}
+        availability: "{{ states('sensor.gilles_boiler_status_code') | is_number }}"
+
+      - name: "Gilles Laitteiston tila"
+        unique_id: gilles_laitteiston_tila_fi
+        state: >
+          {% set c = states('sensor.gilles_status_bitmap') | int(-1) %}
+          {{ {0: 'Normaali', 35: 'Tulipesän luukku auki', 43: 'Koodi 43 (merkitys selvittämättä)',
+              61: 'Varaajan lämpötila saavutettu'}.get(c, 'Koodi ' ~ c) }}
+        icon: >
+          {% set c = states('sensor.gilles_status_bitmap') | int(-1) %}
+          {% if c == 0 %}mdi:check-circle-outline{% elif c == 35 %}mdi:door-open{% elif c == 61 %}mdi:water-boiler{% else %}mdi:alert-circle-outline{% endif %}
+        availability: "{{ states('sensor.gilles_status_bitmap') | is_number }}"
+
+      - name: "Gilles Aikaprofiili"
+        unique_id: gilles_aikaprofiili_fi
+        state: >
+          {% set live = states('sensor.gilles_kessel_soll_live') | float(0) %}
+          {% set paiva = states('sensor.gilles_kessel_soll_tag') | float(0) %}
+          {% set yo = states('sensor.gilles_kessel_soll_nacht') | float(0) %}
+          {% if live == 0 %}Ei aktiivinen
+          {% elif is_state('sensor.gilles_boiler_status_code', '3') %}Varaajan latauksen asetusarvo
+          {% elif live == paiva and live == yo %}Päivä ja yö samat
+          {% elif live == paiva %}Päivä
+          {% elif live == yo %}Yö
+          {% else %}Erikoisarvo ({{ live }} °C)
+          {% endif %}
+        icon: mdi:clock-outline
+        availability: >
+          {{ states('sensor.gilles_kessel_soll_live') | is_number and states('sensor.gilles_kessel_soll_tag') | is_number
+             and states('sensor.gilles_kessel_soll_nacht') | is_number and states('sensor.gilles_boiler_status_code') | is_number }}

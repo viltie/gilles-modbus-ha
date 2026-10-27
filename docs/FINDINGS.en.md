@@ -64,6 +64,29 @@ Entity IDs as they are after the installer script (upstream reference IDs).
 
 The value column shows the Touch reading first, then the HA reading.
 
+## Status codes in Finnish
+
+The `gilles_local.yaml` package adds Finnish status sensors alongside the upstream German ones. The Finnish Touch panel's wording is used where known (✓).
+
+| Register | Code | German (upstream) | Finnish | English |
+|---|---|---|---|---|
+| REG42 burner phase | 0 | Standby | Valmiustila (Touch: *Stokeri pois päältä*) | Standby |
+| | 1 | Vorlueften | Esituuletus | Pre-purge |
+| | 3 | Zuendung | Sytytys | Ignition |
+| | 5 | Zuendung-Spaet | Myöhäinen sytytys | Late ignition |
+| | 6 | Anbrennphase | Syttymisvaihe | Kindling phase |
+| | 7 | Heizen regeln | Lämmitys | Heating (modulating) |
+| | 8 | Ausbrennen | Loppuunpoltto | Burn-out |
+| | 9 | Auskuehlen | Jäähdytys | Cool-down |
+| | 10 | Code 10 (Funktion ungeklaert) | Koodi 10 (toiminta selvittämättä) | Code 10 (function unknown) |
+| REG44 boiler mode | 1 | Handbetrieb | Käsikäyttö | Manual |
+| | 3 | Puffer/Boiler | Varaaja / kattila ✓ | Buffer/boiler |
+| | 5 | Automatik | Automaatti | Automatic |
+| REG46 system status | 0 | Normal | Normaali | Normal |
+| | 35 | Brennraumtuer offen | Tulipesän luukku auki | Combustion chamber door open |
+| | 43 | Code 43 (Bedeutung offen) | Koodi 43 (merkitys selvittämättä) | Code 43 (meaning unknown) |
+| | 61 | Code 61 (Puffertemperatur erreicht?) | Varaajan lämpötila saavutettu ✓ | Buffer temperature reached |
+
 ## Register snapshot in standby
 
 Raw values (int32) on 2026-10-28 at 00:02, boiler in standby, buffer hot. Useful as a reference when interpreting your own values.

@@ -1,0 +1,556 @@
+# Gilles-hakekattilan kojelauta suomeksi (YAML-tila).
+# Sisältää upstream-kojelaudan kaikki sivut käännettyinä sekä Touch-paneelin Trendi-näkymää vastaavan graafin.
+# Varaajan lämpötiloja ei ole Modbusissa, joten ne puuttuvat.
+title: Gilles
+views:
+  # ------------------------------------------------------------------ Yleiskatsaus
+  - title: Yleiskatsaus
+    path: yleiskatsaus
+    icon: mdi:fire
+    cards:
+      - type: tile
+        entity: binary_sensor.gilles_messdaten_verfuegbar
+        name: Kaikki 40 mittausarvoa
+        icon: mdi:lan-connect
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.gilles_messdaten_verfuegbar
+            state_not: "on"
+        card:
+          type: markdown
+          content: >-
+            **Mittausdata puutteellinen.** Vähintään yksi arvo ei ole juuri nyt saatavilla. Tiloja ja
+            mittausarvoja voi arvioida vasta, kun yhteys on palautunut.
+
+      - type: custom:mini-graph-card
+        name: Trendi 24 h
+        hours_to_show: 24
+        points_per_hour: 30
+        line_width: 2
+        smoothing: false
+        height: 220
+        show:
+          labels: true
+          labels_secondary: true
+          legend: true
+          fill: false
+          points: false
+        lower_bound: 0
+        upper_bound: 220
+        lower_bound_secondary: 0
+        upper_bound_secondary: 21
+        entities:
+          - entity: sensor.gilles_abgastemperatur
+            name: Savukaasu
+            color: "#616161"
+          - entity: sensor.gilles_kesseltemperatur
+            name: Kattila
+            color: "#c62828"
+          - entity: sensor.gilles_rucklauftemperatur
+            name: Paluuvesi
+            color: "#ad1457"
+          - entity: sensor.gilles_polttoainevaraston_lampotila
+            name: Polttoainevarasto
+            color: "#1565c0"
+          - entity: sensor.gilles_o2_ist
+            name: Jäännöshappi
+            color: "#00acc1"
+            y_axis: secondary
+
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.gilles_kesseltemperatur
+            name: Kattila
+            icon: mdi:thermometer
+          - type: entity
+            entity: sensor.gilles_kessel_soll_live
+            name: Asetusarvo nyt
+            icon: mdi:thermometer-chevron-up
+          - type: entity
+            entity: sensor.gilles_o2_ist
+            name: O₂
+            icon: mdi:gas-cylinder
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.gilles_abgastemperatur
+            name: Savukaasu
+            icon: mdi:smoke
+          - type: entity
+            entity: sensor.gilles_rucklauftemperatur
+            name: Paluuvesi
+            icon: mdi:arrow-u-down-left
+          - type: entity
+            entity: sensor.gilles_spreizung
+            name: Lämpötilaero
+            icon: mdi:thermometer-lines
+      - type: horizontal-stack
+        cards:
+          - type: entity
+            entity: sensor.gilles_polttoainevaraston_lampotila
+            name: Polttoainevarasto
+            icon: mdi:silo
+          - type: entity
+            entity: binary_sensor.gilles_brennraumtur
+            name: Luukku (epäsuora)
+          - type: entity
+            entity: binary_sensor.gilles_brenner_aktiv
+            name: Polttojakso
+      - type: entities
+        title: Tila
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gilles_kattilan_tila
+            name: Kattilan tila
+          - entity: sensor.gilles_polttovaihe
+            name: Polttovaihe
+          - entity: sensor.gilles_laitteiston_tila
+            name: Laitteiston tila
+          - entity: sensor.gilles_aikaprofiili
+            name: Asetusarvoprofiili
+          - entity: binary_sensor.gilles_ascheaustragung_laeuft
+            name: REG78-signaali (merkitys avoin)
+      - type: glance
+        title: Palaminen
+        columns: 4
+        entities:
+          - entity: sensor.gilles_o2_ist
+            name: O₂
+          - entity: sensor.gilles_primar_ist_vermutet
+            name: Ensiöilma
+          - entity: sensor.gilles_sekundar_ist_vermutet
+            name: Toisioilma
+          - entity: sensor.gilles_saugzug_ist_vermutet
+            name: Savukaasuimuri
+      - type: history-graph
+        title: Lämpötilat 24 h
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_kesseltemperatur
+            name: Kattila
+          - entity: sensor.gilles_kessel_soll_live
+            name: Asetusarvo nyt
+          - entity: sensor.gilles_abgastemperatur
+            name: Savukaasu
+          - entity: sensor.gilles_rucklauftemperatur
+            name: Paluuvesi
+      - type: history-graph
+        title: O₂ 24 h
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_o2_ist
+            name: O₂ nyt
+          - entity: sensor.gilles_o2_min
+            name: O₂ min (parametri)
+          - entity: sensor.gilles_o2_max
+            name: O₂ max (parametri)
+
+  # ------------------------------------------------------------------ Poltin
+  - title: Poltin
+    path: poltin
+    icon: mdi:fan
+    cards:
+      - type: markdown
+        content: >-
+          ## Puhaltimet ja palaminen
+
+
+          REG58/60/62:n skaalaus on auki, kunnes se on verrattu Touch-paneeliin polttimen käydessä.
+          Ensiöilmassa ja savukaasuimurissa on kysymys kertoimesta 10; nolla-arvo ei vahvista skaalausta.
+          Valmiustilan O₂-arvot eivät kerro palamisen laadusta.
+      - type: history-graph
+        title: Ensiöilma
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_primar_ist_vermutet
+            name: Ensiöilma nyt (oletettu)
+          - entity: sensor.gilles_primar_min
+            name: Ensiöilma min
+          - entity: sensor.gilles_primar_max
+            name: Ensiöilma max
+      - type: history-graph
+        title: Savukaasuimuri
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_saugzug_ist_vermutet
+            name: Imuri nyt (skaalaus avoin)
+          - entity: sensor.gilles_saugzug_min
+            name: Imuri min
+          - entity: sensor.gilles_saugzug_max
+            name: Imuri max
+      - type: history-graph
+        title: Toisioilma – kohdistus vielä tarkistettava
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_sekundar_ist_vermutet
+            name: Toisioilma nyt (oletettu)
+          - entity: sensor.gilles_sekundar_min
+            name: Toisioilma min
+          - entity: sensor.gilles_sekundar_max
+            name: Toisioilma max
+      - type: history-graph
+        title: Savukaasu
+        hours_to_show: 12
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_abgastemperatur
+            name: Savukaasu nyt
+          - entity: sensor.gilles_abgas_soll_live_vermutet
+            name: Savukaasun asetusarvo nyt (oletettu)
+          - entity: sensor.gilles_abgas_soll_min
+            name: Savukaasun asetusarvo min (parametri)
+      - type: custom:mini-graph-card
+        name: Ilmat ja imuri 24 h
+        hours_to_show: 24
+        points_per_hour: 30
+        line_width: 1
+        height: 120
+        lower_bound: 0
+        upper_bound: 100
+        show:
+          legend: true
+          fill: false
+        entities:
+          - entity: sensor.gilles_primar_ist_vermutet
+            name: Ensiöilma
+            color: "#ef6c00"
+          - entity: sensor.gilles_sekundar_ist_vermutet
+            name: Toisioilma
+            color: "#2e7d32"
+          - entity: sensor.gilles_saugzug_ist_vermutet
+            name: Imuri
+            color: "#6a1b9a"
+      - type: history-graph
+        title: Polttovaihe ja kattilan tila
+        hours_to_show: 24
+        refresh_interval: 30
+        entities:
+          - entity: sensor.gilles_polttovaihe
+            name: Polttovaihe
+          - entity: sensor.gilles_kattilan_tila
+            name: Kattilan tila
+
+  # ------------------------------------------------------------------ Käyttötilastot
+  - title: Käyttötilastot
+    path: tilastot
+    icon: mdi:chart-line
+    cards:
+      - type: markdown
+        content: >-
+          ## Havaittu käyttö
+
+
+          Käynnistys- ja signaalilaskurit laskevat suoraan havaitut muutokset käyttöönotosta lähtien.
+          Mittauskatkoja ei täydennetä.
+
+
+          **Käynnistykset 24 h:** lasketaan viimeisen 24 tunnin aikana tallennetut suorat vaihemuutokset
+          valmiustilasta (0) esituuletukseen (1). Päivittyy noin 30 sekunnin välein. Uudelleenkäynnistykset
+          ja yhteyden palautumiset ilman havaittua siirtymää eivät ole käynnistyksiä. Päivälaskuri kirjaa
+          käynnistyksen aloituspäivälle, vaikka jakso jatkuisi yli keskiyön.
+
+
+          REG78-laskurit laskevat REG78:n nousevia reunoja; todellista tuhkanpoistoa ne eivät vahvista.
+          Kaikkien vaiheiden O₂-minimi sisältää valmiustilan arvot. Polttoaineen kulutus ja hyötysuhde
+          jäävät tuntemattomiksi ilman omaa mittausta.
+      - type: entities
+        title: Datan laatu · viimeiset 24 h
+        show_header_toggle: false
+        entities:
+          - entity: binary_sensor.gilles_messdaten_verfuegbar
+            name: 40 mittausarvoa numeerisina
+          - entity: sensor.gilles_phasendaten_abdeckung_24h
+            name: Aika tunnetulla vaihekoodilla
+          - entity: sensor.gilles_phasendaten_luecken_24h
+            name: Havaitut katkot
+      - type: entities
+        title: Käynnistykset · suoraan havaitut
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gilles_brennstarts_heute
+            name: Tänään
+          - entity: sensor.gilles_brennstarts_woche
+            name: Tällä viikolla
+          - entity: sensor.gilles_brennstarts_monat
+            name: Tässä kuussa
+          - entity: sensor.gilles_brennstarts_erfasst
+            name: Yhteensä käyttöönotosta
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.gilles_brennstart_letzter
+            state: [unknown, unavailable]
+        card:
+          type: markdown
+          content: >-
+            **Käynnistystä ei ole vielä havaittu.** Ajankohta näkyy seuraavan havaitun siirtymän jälkeen
+            valmiustilasta esituuletukseen.
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.gilles_brennstart_letzter
+            state_not: [unknown, unavailable]
+        card:
+          type: entities
+          title: Viimeisin havaittu käynnistys
+          show_header_toggle: false
+          entities:
+            - entity: sensor.gilles_brennstart_letzter
+              name: Ajankohta
+            - entity: sensor.gilles_zeit_seit_brennstart
+              name: Aikaa siitä
+      - type: entities
+        title: Käyttöajat · tunnetut vaiheet
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gilles_brennzeit_heute
+            name: Polttojakso tänään
+          - entity: sensor.gilles_brennzeit_7d
+            name: Polttojakso · 7 päivää
+          - entity: sensor.gilles_heizphase_dauer_7d
+            name: Lämmitysvaihe · 7 päivää
+          - entity: sensor.gilles_zuendphase_dauer_7d
+            name: Sytytysvaiheet · 7 päivää
+      - type: markdown
+        content: >-
+          Polttojakson aika sisältää esituuletuksen, sytytyksen, lämmityksen, loppuunpolton, jälkikäynnin
+          ja havaitun koodin 10, jonka toiminta on vielä selvittämättä. Se ei todista jatkuvaa liekkiä.
+          Kattavuus huomioi vain tähän asti havaitut vaihekoodit; muut tuntemattomat koodit ja puuttuvat
+          arvot on tarkistettava erikseen. 100 %:iin pyöristetty arvo ei sulje pois lyhyitä katkoja.
+      - type: entities
+        title: Mittausalue · viimeiset 24 h
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gilles_kessel_24h_min
+            name: Kattila · minimi
+          - entity: sensor.gilles_kessel_24h_max
+            name: Kattila · maksimi
+          - entity: sensor.gilles_abgas_24h_max
+            name: Savukaasu · maksimi
+          - entity: sensor.gilles_o2_24h_min
+            name: O₂ · minimi
+      - type: entities
+        title: REG78-signaali ja luukku
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gilles_ascheaustragungen_heute
+            name: REG78-reunat tänään
+          - entity: sensor.gilles_ascheaustragungen_erfasst
+            name: REG78-reunat käyttöönotosta
+          - entity: sensor.gilles_tuer_offen_heute_dauer
+            name: Luukku auki tänään · epäsuora
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.gilles_ascheaustragung_letzte
+            state: [unknown, unavailable]
+        card:
+          type: markdown
+          content: >-
+            **REG78:n nousevaa reunaa ei ole vielä havaittu.** Ajankohta näkyy seuraavan havaitun
+            muutoksen 0→1 jälkeen.
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: sensor.gilles_ascheaustragung_letzte
+            state_not: [unknown, unavailable]
+        card:
+          type: entities
+          title: Viimeisin REG78:n nouseva reuna
+          show_header_toggle: false
+          entities:
+            - entity: sensor.gilles_ascheaustragung_letzte
+              name: Ajankohta
+            - entity: sensor.gilles_zeit_seit_aschenaustragung
+              name: Aikaa siitä
+      - type: entities
+        title: Käynnistyksen diagnostiikka
+        show_header_toggle: false
+        entities:
+          - entity: sensor.gilles_brennstarts_24h
+            name: Käynnistykset 24 h
+          - entity: binary_sensor.gilles_haeufige_brennstarts
+            name: Tiheät käynnistykset
+          - entity: sensor.gilles_startphase_minuten
+            name: Käynnistysvaihe (min)
+          - entity: binary_sensor.gilles_startphase_zu_lang
+            name: Käynnistysvaihe liian pitkä
+          - entity: sensor.gilles_kesseltemperatur_trend_10min
+            name: Lämpötilan nousu · 10 min keskiarvo
+          - entity: binary_sensor.gilles_temperaturanstieg_fehlt
+            name: Lämpötila ei nouse
+          - entity: binary_sensor.gilles_messwerte_unplausibel
+            name: Epäuskottavat mittausarvot
+      - type: entities
+        title: Säädettävät hälytysrajat
+        show_header_toggle: false
+        entities:
+          - entity: input_number.gilles_brennstarts_warnschwelle
+            name: Käynnistyksiä 24 h, raja
+          - entity: input_number.gilles_zuenddauer_warnschwelle
+            name: Sytytyksen kesto, raja (min)
+          - entity: input_number.gilles_temperaturanstieg_mindestwert
+            name: Lämpötilan vähimmäisnousu (°C)
+      - type: markdown
+        content: >-
+          Käynnistysdiagnostiikka koskee vain suoraan havaittuja käynnistyksiä 0→1, kun kaikki 40
+          raaka-arvoa ovat numeerisina saatavilla. Uudelleenkäynnistys, valmiustila tai yhden raaka-arvon
+          puuttuminen hylkää käynnissä olevan diagnoosin. Datan palautuminen ei riitä; vasta uusi
+          käynnistys aktivoi sen.
+
+
+          Käynnistysvaihe sisältää esituuletuksen. Kun syttymis- tai lämmitysvaihetta on kestänyt 30
+          minuuttia, lämpötilahuomautus näkyy vain, jos sekä nousu lähtöarvosta jää asetetun rajan alle
+          että kymmenen minuutin aikana tasoitettu lämpenemisnopeus jää alle rajan / 30 minuuttia. Näin
+          diagnoosi huomioi lämpimät käynnistykset, joissa kattila ensin hieman jäähtyy. Se tarkistaa
+          käynnistyksen eikä todista palamista tai lämmitystehoa.
+
+
+          ”40 mittausarvoa numeerisina” tarkistaa, että lukuarvot ovat olemassa, ei viimeisimmän
+          onnistuneen Modbus-luvun ikää. Normaalien polttojaksojen aikana rekisteriarvot kirjataan
+          lokikirjaan viiden minuutin välein ja vaihemuutoksissa myöhempää Touch-vertailua varten.
+
+  # ------------------------------------------------------------------ Rekisterit
+  - title: Rekisterit
+    path: rekisterit
+    icon: mdi:magnify
+    cards:
+      - type: markdown
+        content: >-
+          ## Rekisterihavainnot ja avoimet kysymykset
+
+
+          **REG70 = polttoainevaraston lämpötila ×0,1 °C** – vahvistettu Touch-paneelista
+          (159 ↔ 16 °C). Sensori: *Polttoainevaraston lämpötila*.
+
+
+          **REG46 = 61 = ”Varaajan lämpötila saavutettu”** – vahvistettu Touch-paneelin otsikosta.
+
+
+          **Vaihe 10 / tila 43:** uusia koodeja, merkitys avoin. Vaihe 10 seuraa sammutuksessa vaihetta 9
+          ja siirtyy vaiheeseen 0. Tila 43 säilyy myös valmiustilassa; se ei ole vahvistettu vikailmoitus.
+
+
+          **REG56:** O₂-asetusarvon hypoteesi; vertailu Touch-paneelin ”Jäännöshappi – asetus” -arvoon
+          polttimen käydessä puuttuu.
+
+
+          **REG68:** ehdokas ”nykyiselle syöttömäärälle”, ei kulutuslaskuri. Skaalaus auki.
+
+
+          **REG72:** aktiivinen sytytyksen aikana. **REG76:** pulsseja myös valmiustilassa.
+
+
+          **REG78:** hypoteesina pumppu/vapautus; fyysinen lähtö vahvistamatta, laskurit laskevat vain reunoja.
+
+
+          **Varaajan ylä- ja alalämpötila** eivät ole Modbusissa (holding-rekisterit 0–93 tarkistettu).
+      - type: history-graph
+        title: REG56 · O₂-asetusarvoehdokas (raaka-arvo)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_reg56
+            name: REG56
+      - type: history-graph
+        title: REG68 · syöttömääräehdokas (raaka-arvo)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_zaehler
+            name: REG68
+      - type: history-graph
+        title: REG72 · liittyy sytytykseen (oletettu)
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_binarflag
+            name: REG72
+      - type: history-graph
+        title: REG74 · tähän asti 0; REG76 · pulssit
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_reg74
+            name: REG74
+          - entity: sensor.gilles_reg76
+            name: REG76
+      - type: history-graph
+        title: Vaihe- ja tilakoodit vertailuun
+        hours_to_show: 24
+        entities:
+          - entity: sensor.gilles_brenn_phase_code
+            name: Polttovaihe
+          - entity: sensor.gilles_boiler_status_code
+            name: Kattilan tila
+          - entity: sensor.gilles_status_bitmap
+            name: Laitteiston tila
+
+  # ------------------------------------------------------------------ Parametrit
+  - title: Parametrit
+    path: parametrit
+    icon: mdi:cog
+    cards:
+      - type: markdown
+        content: >-
+          ## Asetusparametrit
+
+
+          Kattilan ohjaimesta luetut asetusarvot ja rajat. Arvot ovat vain luettavissa.
+      - type: entities
+        title: Kattilan asetusarvot
+        entities:
+          - entity: sensor.gilles_kessel_soll_tag
+            name: Kattilan asetusarvo, päivä
+          - entity: sensor.gilles_kessel_soll_nacht
+            name: Kattilan asetusarvo, yö
+          - entity: sensor.gilles_temp_diff_start
+            name: Lämpötilaero, käynnistys
+          - entity: sensor.gilles_temp_diff_stop
+            name: Lämpötilaero, pysäytys
+          - entity: sensor.gilles_temp_diff_teillast
+            name: Lämpötilaero, osateho
+      - type: entities
+        title: Savukaasun asetusarvot
+        entities:
+          - entity: sensor.gilles_abgas_soll_min
+            name: Savukaasun asetusarvo min
+          - entity: sensor.gilles_abgas_soll_max
+            name: Savukaasun asetusarvo max
+          - entity: sensor.gilles_abgas_soll_maxlimit
+            name: Savukaasun maksimiraja
+      - type: entities
+        title: Lambda- ja puhallinrajat
+        entities:
+          - entity: sensor.gilles_primar_min
+            name: Ensiöilma min
+          - entity: sensor.gilles_primar_max
+            name: Ensiöilma max
+          - entity: sensor.gilles_sekundar_min
+            name: Toisioilma min
+          - entity: sensor.gilles_sekundar_max
+            name: Toisioilma max
+          - entity: sensor.gilles_saugzug_min
+            name: Savukaasuimuri min
+          - entity: sensor.gilles_saugzug_max
+            name: Savukaasuimuri max
+          - entity: sensor.gilles_sekundar_start
+            name: Toisioilma käynnistyksessä
+          - entity: sensor.gilles_o2_min
+            name: Jäännöshappi min
+          - entity: sensor.gilles_o2_max
+            name: Jäännöshappi max
+      - type: entities
+        title: Ajat ja materiaalivirta
+        entities:
+          - entity: sensor.gilles_forderschnecke_soll
+            name: Syöttöruuvi, asetus
+          - entity: sensor.gilles_aschenaustragung_dauer
+            name: Tuhkanpoiston kesto
+          - entity: sensor.gilles_aschenaustragung_pause
+            name: Tuhkanpoiston tauko
+          - entity: sensor.gilles_zundung_einschub
+            name: Sytytyksen syöttö

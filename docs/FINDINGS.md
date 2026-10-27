@@ -64,6 +64,29 @@ Entiteettinimet ovat sellaiset kuin ne ovat asennusskriptin jälkeen (alkuperäi
 
 Arvo-sarakkeessa on ensin Touch-paneelin lukema ja sitten HA:n lukema.
 
+## Tilakoodit suomeksi
+
+Paketti `gilles_local.yaml` lisää suomenkieliset tilasensorit alkuperäisten saksankielisten rinnalle. Touch-paneelin sanamuotoja on käytetty, kun ne tiedetään (✓).
+
+| Rekisteri | Koodi | Saksaksi (upstream) | Suomeksi |
+|---|---|---|---|
+| REG42 polttovaihe | 0 | Standby | Valmiustila (Touch: *Stokeri pois päältä*) |
+| | 1 | Vorlueften | Esituuletus |
+| | 3 | Zuendung | Sytytys |
+| | 5 | Zuendung-Spaet | Myöhäinen sytytys |
+| | 6 | Anbrennphase | Syttymisvaihe |
+| | 7 | Heizen regeln | Lämmitys |
+| | 8 | Ausbrennen | Loppuunpoltto |
+| | 9 | Auskuehlen | Jäähdytys |
+| | 10 | Code 10 (Funktion ungeklaert) | Koodi 10 (toiminta selvittämättä) |
+| REG44 kattilan tila | 1 | Handbetrieb | Käsikäyttö |
+| | 3 | Puffer/Boiler | Varaaja / kattila ✓ |
+| | 5 | Automatik | Automaatti |
+| REG46 laitteiston tila | 0 | Normal | Normaali |
+| | 35 | Brennraumtuer offen | Tulipesän luukku auki |
+| | 43 | Code 43 (Bedeutung offen) | Koodi 43 (merkitys selvittämättä) |
+| | 61 | Code 61 (Puffertemperatur erreicht?) | Varaajan lämpötila saavutettu ✓ |
+
 ## Rekisterien tila valmiustilassa
 
 Raaka-arvot (int32) 28.10.2026 klo 00.02. Kattila valmiustilassa, varaaja lämmin. Hyödyllinen vertailukohta, kun omia arvoja tulkitaan.
