@@ -1,8 +1,8 @@
-# Gilles-pellettikattila Home Assistantiin (Modbus TCP)
+# Gilles-hakekattila Home Assistantiin (Modbus TCP)
 
 > 🇫🇮 **Suomi** · [🇬🇧 English](README.en.md)
 
-Valmis paketti Gilles-pellettikattilan (Touch-paneeli, Sigmatek-ohjain) liittämiseen Home Assistantiin Modbus TCP:n kautta. Mukana on asennusskripti, joka luo kaikki helperit ja automaatiot yhdellä komennolla, Touch-paneelin Trendi-näkymää vastaava kojelauta suomeksi sekä uusia rekisterilöydöksiä.
+Valmis paketti Gilles-hakekattilan (Touch-paneeli, Sigmatek-ohjain) liittämiseen Home Assistantiin Modbus TCP:n kautta. Mukana on asennusskripti, joka luo kaikki helperit ja automaatiot yhdellä komennolla, Touch-paneelin Trendi-näkymää vastaava kojelauta suomeksi sekä uusia rekisterilöydöksiä.
 
 Pohjana on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT), jonka rekisterikartta ja HA-paketit ovat tämän repon perusta. Tämä repo lisää siihen:
 

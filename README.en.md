@@ -1,8 +1,8 @@
-# Gilles pellet boiler in Home Assistant (Modbus TCP)
+# Gilles wood chip boiler in Home Assistant (Modbus TCP)
 
 > [🇫🇮 Suomi](README.md) · 🇬🇧 **English**
 
-A ready-to-use package for connecting a Gilles pellet boiler (Touch panel, Sigmatek controller) to Home Assistant over Modbus TCP. It includes an installer script that creates all helpers and automations with one command, a dashboard that mirrors the Touch panel's Trend view, and new register findings.
+A ready-to-use package for connecting a Gilles wood chip boiler (Touch panel, Sigmatek controller) to Home Assistant over Modbus TCP. It includes an installer script that creates all helpers and automations with one command, a dashboard that mirrors the Touch panel's Trend view, and new register findings.
 
 It builds on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT), whose register map and HA packages are the foundation of this repository. This repository adds:
 
