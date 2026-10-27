@@ -1,0 +1,535 @@
+# Gilles Touch -- Home Assistant, live-verified configuration (2026-09-07).
+# Set host to your boiler IP; 192.0.2.1 is a documentation placeholder.
+# Keep existing unique_id/entity_id values; see entity_ids.json and README.md.
+# REG42 polls every 2 s to keep the measured ~3 s TCP idle timeout from expiring.
+# HA 2026.9.1 logs a generic warning for polling below 5 s; only REG42 uses 2 s.
+# message_wait_milliseconds separates requests. HA sets PyModbus retries internally.
+# Runtime scales and identities preserved. REG56 is an O2-target candidate; REG68 is not a cumulative counter.
+# REG58/60/62 scales and REG78 physical meaning remain unresolved; see REGISTER_FINDINGS.md.
+modbus:
+  - name: gilles
+    type: tcp
+    host: 192.0.2.1              # CHANGE TO YOUR BOILER IP (RFC5737 placeholder)
+    port: 502
+    delay: 2
+    timeout: 5
+    message_wait_milliseconds: 200
+
+    sensors:
+      # === Setpoints / Parameters (rarely changed, slow polling) ===
+
+      - name: "Gilles Foerderschnecke Soll"
+        unique_id: gilles_foerderschnecke_soll
+        slave: 1
+        address: 0
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Primaer Max"
+        unique_id: gilles_primaer_max
+        slave: 1
+        address: 2
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Primaer Min"
+        unique_id: gilles_primaer_min
+        slave: 1
+        address: 4
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Sekundaer Max"
+        unique_id: gilles_sekundaer_max
+        slave: 1
+        address: 6
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Sekundaer Min"
+        unique_id: gilles_sekundaer_min
+        slave: 1
+        address: 8
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Saugzug Max"
+        unique_id: gilles_saugzug_max
+        slave: 1
+        address: 10
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Saugzug Min"
+        unique_id: gilles_saugzug_min
+        slave: 1
+        address: 12
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles O2 Max"
+        unique_id: gilles_o2_max
+        slave: 1
+        address: 14
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles O2 Min"
+        unique_id: gilles_o2_min
+        slave: 1
+        address: 16
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Kessel-Soll Tag"
+        unique_id: gilles_kessel_soll_tag
+        slave: 1
+        address: 18
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 120
+
+      - name: "Gilles Aschenaustragung Dauer"
+        unique_id: gilles_aschen_dauer
+        slave: 1
+        address: 20
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "s"
+        scan_interval: 600
+
+      - name: "Gilles Aschenaustragung Pause"
+        unique_id: gilles_aschen_pause
+        slave: 1
+        address: 22
+        input_type: holding
+        data_type: int32
+        unit_of_measurement: "min"
+        scan_interval: 600
+
+      - name: "Gilles Sekundaer Start"
+        unique_id: gilles_sekundaer_start
+        slave: 1
+        address: 24
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        scan_interval: 300
+
+      - name: "Gilles Zuendung Einschub"
+        unique_id: gilles_zuend_einschub
+        slave: 1
+        address: 26
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "s"
+        scan_interval: 600
+
+      - name: "Gilles TempDiff Start"
+        unique_id: gilles_tempdiff_start
+        slave: 1
+        address: 28
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        scan_interval: 600
+
+      - name: "Gilles TempDiff Stop"
+        unique_id: gilles_tempdiff_stop
+        slave: 1
+        address: 30
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        scan_interval: 600
+
+      - name: "Gilles TempDiff Teillast"
+        unique_id: gilles_tempdiff_teillast
+        slave: 1
+        address: 32
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        scan_interval: 600
+
+      - name: "Gilles Kessel-Soll Nacht"
+        unique_id: gilles_kessel_soll_nacht
+        slave: 1
+        address: 34
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 120
+
+      - name: "Gilles Abgas-Soll Min"
+        unique_id: gilles_abgas_soll_min
+        slave: 1
+        address: 36
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 300
+
+      - name: "Gilles Abgas-Soll Max"
+        unique_id: gilles_abgas_soll_max
+        slave: 1
+        address: 38
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 600
+
+      - name: "Gilles Abgas-Soll MaxLimit"
+        unique_id: gilles_abgas_soll_maxlimit
+        slave: 1
+        address: 40
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 600
+
+      # === Status / Phase registers ===
+
+      - name: "Gilles Brenn Phase Code"
+        unique_id: gilles_brenn_phase_code
+        slave: 1
+        address: 42
+        input_type: holding
+        data_type: int32
+        scan_interval: 2
+
+      - name: "Gilles Boiler Status Code"
+        unique_id: gilles_boiler_status_code
+        slave: 1
+        address: 44
+        input_type: holding
+        data_type: int32
+        scan_interval: 30
+
+      - name: "Gilles Status Bitmap"
+        unique_id: gilles_status_bitmap
+        slave: 1
+        address: 46
+        input_type: holding
+        data_type: int32
+        scan_interval: 30
+
+      # === Live measurements ===
+
+      - name: "Gilles Kesseltemperatur"
+        unique_id: gilles_kessel_ist
+        slave: 1
+        address: 48
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+        scan_interval: 30
+
+      - name: "Gilles Abgastemperatur"
+        unique_id: gilles_abgas_ist
+        slave: 1
+        address: 50
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+        scan_interval: 30
+
+      - name: "Gilles Ruecklauftemperatur"
+        unique_id: gilles_ruecklauf_ist
+        slave: 1
+        address: 52
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+        scan_interval: 30
+
+      - name: "Gilles O2 Ist"
+        unique_id: gilles_o2_ist
+        slave: 1
+        address: 54
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        state_class: measurement
+        scan_interval: 30
+
+      - name: "Gilles REG56"
+        unique_id: gilles_reg56
+        slave: 1
+        address: 56
+        input_type: holding
+        data_type: int32
+        scan_interval: 30
+
+      - name: "Gilles Primaer Ist"
+        unique_id: gilles_primaer_ist
+        slave: 1
+        address: 58
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        state_class: measurement
+        scan_interval: 30
+
+      - name: "Gilles Sekundaer Ist"
+        unique_id: gilles_sekundaer_ist
+        slave: 1
+        address: 60
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        state_class: measurement
+        scan_interval: 30
+
+      # CORRECTED in v0.3.0: REG[62] is SaugzugIst, not the door
+      - name: "Gilles Saugzug Ist"
+        unique_id: gilles_saugzug_ist
+        slave: 1
+        address: 62
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "%"
+        state_class: measurement
+        scan_interval: 10
+
+      - name: "Gilles Kessel-Soll Live"
+        unique_id: gilles_kessel_soll_live
+        slave: 1
+        address: 64
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 30
+
+      - name: "Gilles Abgas-Soll Live"
+        unique_id: gilles_abgas_soll_live
+        slave: 1
+        address: 66
+        input_type: holding
+        data_type: int32
+        scale: 0.1
+        precision: 1
+        unit_of_measurement: "°C"
+        device_class: temperature
+        scan_interval: 30
+
+      - name: "Gilles Zaehler"
+        unique_id: gilles_zaehler
+        slave: 1
+        address: 68
+        input_type: holding
+        data_type: int32
+        scan_interval: 30
+
+      - name: "Gilles REG70"
+        unique_id: gilles_reg70
+        slave: 1
+        address: 70
+        input_type: holding
+        data_type: int32
+        scan_interval: 60
+
+      - name: "Gilles BinarFlag"
+        unique_id: gilles_binarflag
+        slave: 1
+        address: 72
+        input_type: holding
+        data_type: int32
+        scan_interval: 30
+
+      - name: "Gilles REG74"
+        unique_id: gilles_reg74
+        slave: 1
+        address: 74
+        input_type: holding
+        data_type: int32
+        scan_interval: 60
+
+      - name: "Gilles REG76"
+        unique_id: gilles_reg76
+        slave: 1
+        address: 76
+        input_type: holding
+        data_type: int32
+        scan_interval: 60
+
+      - name: "Gilles Ascheaustragung Aktiv"
+        unique_id: gilles_ascheaustragung_aktiv
+        slave: 1
+        address: 78
+        input_type: holding
+        data_type: int32
+        scan_interval: 10
+
+
+template:
+- sensor:
+  - name: Gilles Brenn Phase
+    unique_id: gilles_brenn_phase_text
+    state: "{% set codes = {\n  0: 'Standby',\n  1: 'Vorlueften',\n  3: 'Zuendung',\n  5: 'Zuendung-Spaet',\n\
+      \  6: 'Anbrennphase',\n  7: 'Heizen regeln',\n  8: 'Ausbrennen',\n  9: 'Auskuehlen',\n  10: 'Code\
+      \ 10 (Funktion ungeklaert)'\n} %} {{ codes.get(states('sensor.gilles_brenn_phase_code') | int(0),\n\
+      \   'Unbekannt (Code ' ~ states('sensor.gilles_brenn_phase_code') ~ ')') }}\n"
+    icon: '{% set p = states(''sensor.gilles_brenn_phase_code'') | int(0) %} {% if p == 0 %}mdi:power-standby
+      {% elif p in [1,3,5,6] %}mdi:fire {% elif p == 7 %}mdi:fire {% elif p == 8 %}mdi:fire-alert {% elif
+      p == 9 %}mdi:snowflake-melt {% else %}mdi:help-circle {% endif %}
+
+      '
+    availability: '{{ is_number(states(''sensor.gilles_brenn_phase_code'')) }}'
+  - name: Gilles Boiler Status
+    unique_id: gilles_boiler_status_text
+    state: "{% set codes = {\n  1: 'Handbetrieb',\n  3: 'Puffer/Boiler',\n  5: 'Automatik'\n} %} {{ codes.get(states('sensor.gilles_boiler_status_code')\
+      \ | int(0),\n   'Unbekannt (Code ' ~ states('sensor.gilles_boiler_status_code') ~ ')') }}\n"
+    icon: '{% set s = states(''sensor.gilles_boiler_status_code'') | int(0) %} {% if s == 1 %}mdi:hand-back-right
+      {% elif s == 3 %}mdi:water-boiler {% elif s == 5 %}mdi:cog {% else %}mdi:state-machine {% endif
+      %}
+
+      '
+    availability: '{{ is_number(states(''sensor.gilles_boiler_status_code'')) }}'
+  - name: Gilles Anlagen-Zustand
+    unique_id: gilles_anlagen_zustand
+    state: "{% set codes = {\n  0: 'Normal',\n  35: 'Brennraumtuer offen',\n  43: 'Code 43 (Bedeutung\
+      \ offen)',\n  61: 'Code 61 (Puffertemperatur erreicht?)'\n} %} {{ codes.get(states('sensor.gilles_status_bitmap')\
+      \ | int(0),\n   'Code ' ~ states('sensor.gilles_status_bitmap')) }}\n"
+    icon: mdi:alert-circle-outline
+    availability: '{{ is_number(states(''sensor.gilles_status_bitmap'')) }}'
+  - name: Gilles Zeitprofil
+    unique_id: gilles_zeitprofil
+    state: '{% set live = states(''sensor.gilles_kessel_soll_live'') | float(0) %}
+
+      {% set tag = states(''sensor.gilles_kessel_soll_tag'') | float(0) %}
+
+      {% set nacht = states(''sensor.gilles_kessel_soll_nacht'') | float(0) %}
+
+      {% if live == 0 %}inaktiv
+
+      {% elif is_state(''sensor.gilles_boiler_status_code'', ''3'') %}Puffer-Lade-Soll
+
+      {% elif live == tag and live == nacht %}Tag/Nacht identisch
+
+      {% elif live == tag %}Tag
+
+      {% elif live == nacht %}Nacht
+
+      {% else %}Sonderwert ({{ live }} °C)
+
+      {% endif %}'
+    icon: '{% set p = states(''sensor.gilles_zeitprofil'') %} {% if p == ''Tag'' %}mdi:weather-sunny {%
+      elif p == ''Nacht'' %}mdi:weather-night {% elif p == ''Puffer-Lade-Soll'' %}mdi:water-boiler {%
+      else %}mdi:help-circle {% endif %}
+
+      '
+    availability: '{{ is_number(states(''sensor.gilles_kessel_soll_live'')) and is_number(states(''sensor.gilles_kessel_soll_tag''))
+      and is_number(states(''sensor.gilles_kessel_soll_nacht'')) and is_number(states(''sensor.gilles_boiler_status_code''))
+      }}'
+- binary_sensor:
+  - name: Gilles Brennraumtuer
+    unique_id: gilles_brennraumtuer
+    state: '{{ states(''sensor.gilles_status_bitmap'') | int(0) == 35 }}'
+    device_class: door
+    icon: mdi:door
+    availability: '{{ states(''sensor.gilles_status_bitmap'') in [''0'', ''35'', ''61''] }}'
+    attributes:
+      erkennung: Indirekt aus REG46; andere als bekannte Statuscodes bleiben unbekannt
+  - name: Gilles Ascheaustragung laeuft
+    unique_id: gilles_ascheaustragung_laeuft
+    state: '{{ states(''sensor.gilles_ascheaustragung_aktiv'') | int(0) > 0 }}'
+    icon: mdi:trash-can-outline
+    availability: '{{ states(''sensor.gilles_ascheaustragung_aktiv'') in [''0'', ''1''] }}'
+  - name: Gilles Brennzyklus aktiv
+    unique_id: gilles_brenner_aktiv
+    state: '{{ states(''sensor.gilles_brenn_phase_code'') | int(0) > 0 }}'
+    device_class: heat
+    icon: mdi:fire
+    availability: '{{ states(''sensor.gilles_brenn_phase_code'') in [''0'', ''1'', ''3'', ''5'', ''6'',
+      ''7'', ''8'', ''9'', ''10''] }}'
+    attributes:
+      bedeutung: Beobachteter Brennzyklus einschliesslich Vorlueften, Nachlauf und Code 10 mit ungeklaerter
+        Funktion; kein Flammennachweis

@@ -1,0 +1,100 @@
+# Gilles-kattilan kojelauta (YAML-tila). Trendi vastaa Touch-paneelin Trendi-näkymää.
+# Varaajan lämpötiloja ei ole Modbusissa, joten ne puuttuvat.
+title: Gilles
+views:
+  - title: Kattila
+    path: kattila
+    icon: mdi:fire
+    cards:
+      - type: custom:mini-graph-card
+        name: Trendi 24 h
+        hours_to_show: 24
+        points_per_hour: 30
+        line_width: 2
+        smoothing: false
+        height: 220
+        show:
+          labels: true
+          labels_secondary: true
+          legend: true
+          fill: false
+          points: false
+        lower_bound: 0
+        upper_bound: 220
+        lower_bound_secondary: 0
+        upper_bound_secondary: 21
+        entities:
+          - entity: sensor.gilles_abgastemperatur
+            name: Savukaasu
+            color: "#616161"
+          - entity: sensor.gilles_kesseltemperatur
+            name: Kattila
+            color: "#c62828"
+          - entity: sensor.gilles_rucklauftemperatur
+            name: Paluuvesi
+            color: "#ad1457"
+          - entity: sensor.gilles_polttoainevaraston_lampotila
+            name: Polttoainevarasto
+            color: "#1565c0"
+          - entity: sensor.gilles_o2_ist
+            name: Jäännöshappi
+            color: "#00acc1"
+            y_axis: secondary
+
+      - type: entities
+        title: Tila
+        entities:
+          - entity: sensor.gilles_boiler_status
+            name: Kattilan tila
+          - entity: sensor.gilles_brenn_phase
+            name: Polttovaihe
+          - entity: sensor.gilles_anlagen_zustand
+            name: Laitteiston tila
+
+      - type: glance
+        title: Lämpötilat
+        columns: 4
+        entities:
+          - entity: sensor.gilles_kesseltemperatur
+            name: Kattila
+          - entity: sensor.gilles_abgastemperatur
+            name: Savukaasu
+          - entity: sensor.gilles_rucklauftemperatur
+            name: Paluuvesi
+          - entity: sensor.gilles_polttoainevaraston_lampotila
+            name: Varasto
+
+      - type: glance
+        title: Palaminen
+        columns: 4
+        entities:
+          - entity: sensor.gilles_o2_ist
+            name: O2
+          - entity: sensor.gilles_primar_ist_vermutet
+            name: Ensiöilma
+          - entity: sensor.gilles_sekundar_ist_vermutet
+            name: Toisioilma
+          - entity: sensor.gilles_saugzug_ist_vermutet
+            name: Savukaasuimuri
+
+      - type: custom:mini-graph-card
+        name: Ilmat ja imuri 24 h
+        hours_to_show: 24
+        points_per_hour: 30
+        line_width: 1
+        height: 120
+        lower_bound: 0
+        upper_bound: 100
+        show:
+          legend: true
+          fill: false
+        entities:
+          - entity: sensor.gilles_primar_ist_vermutet
+            name: Ensiöilma
+            color: "#ef6c00"
+          - entity: sensor.gilles_sekundar_ist_vermutet
+            name: Toisioilma
+            color: "#2e7d32"
+          - entity: sensor.gilles_saugzug_ist_vermutet
+            name: Imuri
+            color: "#6a1b9a"

@@ -1,0 +1,30 @@
+# Package name must use an underscore with !include_dir_named.
+# Timestamp entities only: native helpers are defined in helpers.json.
+# Values remain unknown until the first directly observed 0 -> 1 transition.
+template:
+- triggers:
+  - trigger: state
+    entity_id: sensor.gilles_brenn_phase_code
+    from: '0'
+    to: '1'
+  sensor:
+  - name: Gilles Brennstart Letzter
+    unique_id: gilles_brennstart_letzter
+    device_class: timestamp
+    icon: mdi:clock-start
+    state: '{{ now().isoformat() }}'
+    attributes:
+      erfassung: Nur direkt beobachteter Uebergang 0 auf 1; Ausfaelle werden nicht aufgefuellt
+- triggers:
+  - trigger: state
+    entity_id: sensor.gilles_ascheaustragung_aktiv
+    from: '0'
+    to: '1'
+  sensor:
+  - name: Gilles Ascheaustragung Letzte
+    unique_id: gilles_ascheaustragung_letzte
+    device_class: timestamp
+    icon: mdi:trash-can-clock
+    state: '{{ now().isoformat() }}'
+    attributes:
+      erfassung: Nur direkt beobachteter Uebergang 0 auf 1

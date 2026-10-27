@@ -1,0 +1,400 @@
+title: Gilles Heizung
+views:
+- cards:
+  - entity: binary_sensor.gilles_messdaten_verfuegbar
+    icon: mdi:lan-connect
+    name: Alle 40 Messwerte
+    type: tile
+  - card:
+      content: '**Messdaten unvollständig.** Mindestens ein Wert ist derzeit nicht verfügbar. Die betroffenen
+        Zustände und Messwerte können erst nach Wiederherstellung der Verbindung beurteilt werden.'
+      type: markdown
+    conditions:
+    - condition: state
+      entity: binary_sensor.gilles_messdaten_verfuegbar
+      state_not: 'on'
+    type: conditional
+  - cards:
+    - entity: sensor.gilles_kesseltemperatur
+      icon: mdi:thermometer
+      name: Kessel
+      type: entity
+    - entity: sensor.gilles_kessel_soll_live
+      icon: mdi:thermometer-chevron-up
+      name: Soll aktiv
+      type: entity
+    - entity: sensor.gilles_o2_ist
+      icon: mdi:gas-cylinder
+      name: O₂
+      type: entity
+    type: horizontal-stack
+  - cards:
+    - entity: sensor.gilles_abgastemperatur
+      icon: mdi:smoke
+      name: Abgas
+      type: entity
+    - entity: sensor.gilles_rucklauftemperatur
+      icon: mdi:arrow-u-down-left
+      name: Rücklauf
+      type: entity
+    - entity: sensor.gilles_spreizung
+      icon: mdi:thermometer-lines
+      name: Spreizung
+      type: entity
+    type: horizontal-stack
+  - cards:
+    - entity: sensor.gilles_boiler_status
+      name: Modus
+      type: entity
+    - entity: sensor.gilles_brenn_phase
+      name: Phase
+      type: entity
+    - entity: sensor.gilles_zeitprofil
+      name: Sollprofil
+      type: entity
+    - entity: binary_sensor.gilles_brennraumtur
+      name: Tür (indirekt)
+      type: entity
+    type: horizontal-stack
+  - cards:
+    - entity: binary_sensor.gilles_brenner_aktiv
+      name: Brennzyklus
+      type: entity
+    - entity: binary_sensor.gilles_ascheaustragung_laeuft
+      name: REG78 · Funktion offen
+      type: entity
+    - entity: sensor.gilles_anlagen_zustand
+      name: Anlagen-Zustand
+      type: entity
+    type: horizontal-stack
+  - entities:
+    - entity: sensor.gilles_kesseltemperatur
+      name: Kessel
+    - entity: sensor.gilles_kessel_soll_live
+      name: Soll Live
+    - entity: sensor.gilles_abgastemperatur
+      name: Abgas
+    - entity: sensor.gilles_rucklauftemperatur
+      name: Rücklauf
+    hours_to_show: 24
+    refresh_interval: 30
+    title: Temperaturen 24h
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_o2_ist
+    - entity: sensor.gilles_o2_min
+    - entity: sensor.gilles_o2_max
+    hours_to_show: 24
+    refresh_interval: 30
+    title: O₂ 24h
+    type: history-graph
+  icon: mdi:fire
+  path: uebersicht
+  title: Übersicht
+- cards:
+  - content: '## Drehzahlen & Verbrennung
+
+
+      Die Skalierung von REG58/60/62 bleibt bis zum synchronisierten Touch-Vergleich offen. Bei Primärluft
+      und Saugzug besteht eine Faktor-10-Frage; ein Nullwert kann keinen Skalierungsfaktor bestätigen.
+      O₂-Werte im Standby sind kein Nachweis der Verbrennungsqualität.'
+    type: markdown
+  - entities:
+    - entity: sensor.gilles_primar_ist_vermutet
+      name: Primär Ist (vermutet)
+    - entity: sensor.gilles_primar_min
+      name: Primär Min
+    - entity: sensor.gilles_primar_max
+      name: Primär Max
+    hours_to_show: 12
+    refresh_interval: 30
+    title: Primärluft
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_saugzug_ist_vermutet
+      name: Saugzug Ist (Skalierung offen)
+    - entity: sensor.gilles_saugzug_min
+      name: Saugzug Min
+    - entity: sensor.gilles_saugzug_max
+      name: Saugzug Max
+    hours_to_show: 12
+    refresh_interval: 30
+    title: Saugzug
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_sekundar_ist_vermutet
+    - entity: sensor.gilles_sekundar_min
+    - entity: sensor.gilles_sekundar_max
+    hours_to_show: 12
+    refresh_interval: 30
+    title: Sekundärluft – Zuordnung noch prüfen
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_abgastemperatur
+      name: Abgas Ist
+    - entity: sensor.gilles_abgas_soll_live_vermutet
+      name: Abgas Soll Live (vermutet)
+    - entity: sensor.gilles_abgas_soll_min
+      name: Abgas Soll Min (Param)
+    hours_to_show: 12
+    refresh_interval: 30
+    title: Abgas-Verlauf
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_brenn_phase_code
+      name: Phase-Code
+    - entity: sensor.gilles_boiler_status_code
+      name: BoilerStatus-Code
+    hours_to_show: 24
+    refresh_interval: 30
+    title: Brennphase-Verlauf
+    type: history-graph
+  icon: mdi:fan
+  path: brenner
+  title: Brenner
+- cards:
+  - content: "## Erfasster Betrieb\n\nStart- und Signalzähler erfassen direkt beobachtete Wechsel seit ihrer Einrichtung. Messlücken werden nicht aufgefüllt.\n\n**Brennstarts 24 h:** Gezählt werden die in den letzten 24 Stunden aufgezeichneten direkten Phasenwechsel von Standby (0) zu Vorlüften (1). Aktualisierung etwa alle 30 Sekunden. Neustarts und Wiederverbindungen ohne beobachteten Übergang zählen nicht als Start. Tageszähler ordnen einen Start dem Starttag zu, auch wenn der Zyklus über Mitternacht läuft.\n\nDie bisherigen Aschezähler zählen REG78-Einschaltflanken; eine tatsächliche Ascheaustragung ist damit nicht bestätigt. O₂-Minima über alle Phasen enthalten Standbywerte. Pelletverbrauch und Wirkungsgrad bleiben ohne eigene Messung unbekannt."
+    type: markdown
+  - entities:
+    - entity: binary_sensor.gilles_messdaten_verfuegbar
+      name: "40 Messwerte numerisch vorhanden"
+    - entity: sensor.gilles_phasendaten_abdeckung_24h
+      name: Zeit mit bekanntem Phasencode
+    - entity: sensor.gilles_phasendaten_luecken_24h
+      name: Erfasste Nichtverfügbarkeitsintervalle
+    show_header_toggle: false
+    title: Datenqualität · letzte 24 Stunden
+    type: entities
+  - entities:
+    - entity: sensor.gilles_brennstarts_heute
+      name: Heute
+    - entity: sensor.gilles_brennstarts_woche
+      name: Diese Woche
+    - entity: sensor.gilles_brennstarts_monat
+      name: Dieser Monat
+    - entity: sensor.gilles_brennstarts_erfasst
+      name: Gesamt seit Einrichtung
+    show_header_toggle: false
+    title: Brennstarts · direkt beobachtet
+    type: entities
+  - card:
+      content: '**Noch kein Brennstart erfasst.** Der Zeitpunkt erscheint nach dem nächsten beobachteten
+        Wechsel von Standby zu Vorbelüftung.'
+      type: markdown
+    conditions:
+    - condition: state
+      entity: sensor.gilles_brennstart_letzter
+      state:
+      - unknown
+      - unavailable
+    type: conditional
+  - card:
+      entities:
+      - entity: sensor.gilles_brennstart_letzter
+        name: Zeitpunkt
+      - entity: sensor.gilles_zeit_seit_brennstart
+        name: Zeit seither
+      show_header_toggle: false
+      title: Letzter beobachteter Brennstart
+      type: entities
+    conditions:
+    - condition: state
+      entity: sensor.gilles_brennstart_letzter
+      state_not:
+      - unknown
+      - unavailable
+    type: conditional
+  - entities:
+    - entity: sensor.gilles_brennzeit_heute
+      name: Brennzyklus heute
+    - entity: sensor.gilles_brennzeit_7d
+      name: Brennzyklus · 7 Tage
+    - entity: sensor.gilles_heizphase_dauer_7d
+      name: Heizphase · 7 Tage
+    - entity: sensor.gilles_zuendphase_dauer_7d
+      name: Zündphasen · 7 Tage
+    show_header_toggle: false
+    title: Betriebszeiten · bekannte Phasen
+    type: entities
+  - content: Die Brennzyklus-Zeit umfasst Vorbelüftung, Zünden, Heizen, Ausbrennen, Nachlauf und den beobachteten
+      Code 10 mit noch ungeklärter Funktion. Sie belegt keine durchgehende Flamme. Die Abdeckung berücksichtigt
+      nur die bisher beobachteten Phasencodes; weitere unbekannte Codes und fehlende Messwerte sind getrennt
+      zu prüfen. Ein auf 100 % gerundeter Wert schließt kurze Ausfälle nicht aus.
+    type: markdown
+  - entities:
+    - entity: sensor.gilles_kessel_24h_min
+      name: Kessel · Minimum
+    - entity: sensor.gilles_kessel_24h_max
+      name: Kessel · Maximum
+    - entity: sensor.gilles_abgas_24h_max
+      name: Abgas · Maximum
+    - entity: sensor.gilles_o2_24h_min
+      name: O₂ · Minimum
+    show_header_toggle: false
+    title: Messwertbereich · letzte 24 Stunden
+    type: entities
+  - entities:
+    - entity: sensor.gilles_ascheaustragungen_heute
+      name: REG78-Flanken heute
+    - entity: sensor.gilles_ascheaustragungen_erfasst
+      name: REG78-Flanken seit Einrichtung
+    - entity: sensor.gilles_tuer_offen_heute_dauer
+      name: Tür offen heute · indirekt erfasst
+    show_header_toggle: false
+    title: REG78-Signal & Tür
+    type: entities
+  - card:
+      content: '**Noch keine REG78-Einschaltflanke erfasst.** Der Zeitpunkt erscheint nach dem nächsten
+        beobachteten Wechsel 0→1.'
+      type: markdown
+    conditions:
+    - condition: state
+      entity: sensor.gilles_ascheaustragung_letzte
+      state:
+      - unknown
+      - unavailable
+    type: conditional
+  - card:
+      entities:
+      - entity: sensor.gilles_ascheaustragung_letzte
+        name: Zeitpunkt
+      - entity: sensor.gilles_zeit_seit_aschenaustragung
+        name: Zeit seither
+      show_header_toggle: false
+      title: Letzte REG78-Einschaltflanke
+      type: entities
+    conditions:
+    - condition: state
+      entity: sensor.gilles_ascheaustragung_letzte
+      state_not:
+      - unknown
+      - unavailable
+    type: conditional
+  - entities:
+    - sensor.gilles_brennstarts_24h
+    - binary_sensor.gilles_haeufige_brennstarts
+    - sensor.gilles_startphase_minuten
+    - binary_sensor.gilles_startphase_zu_lang
+    - entity: sensor.gilles_kesseltemperatur_trend_10min
+      name: Temperaturanstieg · 10-Min.-Mittel
+    - binary_sensor.gilles_temperaturanstieg_fehlt
+    - binary_sensor.gilles_messwerte_unplausibel
+    show_header_toggle: false
+    title: Brennstart-Diagnose
+    type: entities
+  - entities:
+    - input_number.gilles_brennstarts_warnschwelle
+    - input_number.gilles_zuenddauer_warnschwelle
+    - input_number.gilles_temperaturanstieg_mindestwert
+    show_header_toggle: false
+    title: Einstellbare Hinweisschwellen
+    type: entities
+  - content: "Die Startdiagnose gilt nur für direkt beobachtete Starts von 0 auf 1 bei 40 numerisch verfügbaren Rohwerten. Neustart, Standby oder Ausfall eines Rohwerts verwerfen die laufende Diagnose. Wiederkehr der Daten genügt nicht; erst ein neuer Start aktiviert sie.\n\nDie Startphase schließt Vorlüften ein. Ab 30 Minuten im Anbrenn- oder Heizbetrieb erscheint der Temperaturhinweis nur, wenn sowohl der Anstieg gegenüber dem Startwert unter der eingestellten Schwelle liegt als auch die über zehn Minuten geglättete Heizrate unter Schwelle / 30 Minuten liegt. Dadurch berücksichtigt die Diagnose bereits warme Starts mit anfänglicher Abkühlung. Sie prüft den Start und ist kein Nachweis der Verbrennung oder der Heizleistung.\n\n„40 Messwerte numerisch vorhanden“ prüft vorhandene Zahlenwerte, nicht das Alter der letzten erfolgreichen Modbus-Abfrage. Während regulärer Brennläufe erscheinen alle fünf Minuten und bei Phasenwechseln Registerstände im Aktivitätenprotokoll für den späteren Touch-Abgleich."
+    type: markdown
+  icon: mdi:chart-line
+  path: statistik
+  title: Betriebsstatistik
+- cards:
+  - content: '## Register-Erkenntnisse und offene Fragen
+
+
+      **Phase 10 / Status 43:** neu beobachtete Codes, Bedeutung offen. Phase 10 folgt in einem aufgezeichneten
+      Abschaltpfad auf 9 und geht in 0 über. Status 43 bleibt auch im Standby bestehen; daraus folgt keine
+      bestätigte Störungsmeldung.
+
+
+      **REG56:** O₂-Sollwert-Hypothese durch einen weiteren Heizverlauf gestützt. Vergleich mit „Restsauerstoff
+      – Soll“ bei laufendem Brenner fehlt.
+
+
+      **REG68:** Kandidat für „aktuelle Einschubmenge“, kein Verbrauchszähler. Skala weiterhin offen.
+
+
+      **REG72:** erneut während Zündung aktiv. **REG76:** Pulse auch im Standby, kein belegter Reinigungsrhythmus.
+
+
+      **REG78:** Aktivintervalle mit steigendem Rücklauf und sinkender Kesseltemperatur stützen Pumpe/Freigabe
+      als Hypothese. Physischer Ausgang unbestätigt; Zähler erfassen nur Flanken.
+
+
+      REG70/74 bisher nur null. Luftskalierungen unverändert. REG46=61 passt vorläufig zu „Puffertemperatur
+      erreicht“.'
+    type: markdown
+  - entities:
+    - entity: sensor.gilles_reg56
+    hours_to_show: 24
+    title: REG56 · O₂-Soll-Kandidat (Rohwert)
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_zaehler
+    hours_to_show: 24
+    title: REG68 · Stellgrößen-Kandidat (Rohwert)
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_binarflag
+    hours_to_show: 24
+    title: REG72 · Zündungsbezug vermutet
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_reg70
+    - entity: sensor.gilles_reg74
+    - entity: sensor.gilles_reg76
+    hours_to_show: 24
+    title: REG70/74 · bisher 0; REG76 · Pulse
+    type: history-graph
+  - entities:
+    - entity: sensor.gilles_brenn_phase_code
+      name: Brennphase
+    - entity: sensor.gilles_boiler_status_code
+      name: Betriebsart
+    - entity: sensor.gilles_status_bitmap
+      name: Anlagenstatus
+    hours_to_show: 24
+    title: Phasen- und Statuscodes zum Vergleich
+    type: history-graph
+  icon: mdi:magnify
+  path: detektiv
+  title: Detektivarbeit
+- cards:
+  - content: '## Konfigurationsparameter
+
+
+      Ausgelesene Sollwerte und Grenzen der Kesselsteuerung. Die Werte lassen sich hier ablesen.'
+    type: markdown
+  - entities:
+    - entity: sensor.gilles_kessel_soll_tag
+    - entity: sensor.gilles_kessel_soll_nacht
+    - entity: sensor.gilles_temp_diff_start
+    - entity: sensor.gilles_temp_diff_stop
+    - entity: sensor.gilles_temp_diff_teillast
+    title: Kessel-Sollwerte
+    type: entities
+  - entities:
+    - entity: sensor.gilles_abgas_soll_min
+    - entity: sensor.gilles_abgas_soll_max
+    - entity: sensor.gilles_abgas_soll_maxlimit
+    title: Abgas-Sollwerte
+    type: entities
+  - entities:
+    - entity: sensor.gilles_primar_min
+    - entity: sensor.gilles_primar_max
+    - entity: sensor.gilles_sekundar_min
+    - entity: sensor.gilles_sekundar_max
+    - entity: sensor.gilles_saugzug_min
+    - entity: sensor.gilles_saugzug_max
+    - entity: sensor.gilles_sekundar_start
+    - entity: sensor.gilles_o2_min
+    - entity: sensor.gilles_o2_max
+    title: Lambda / Gebläse-Grenzen
+    type: entities
+  - entities:
+    - entity: sensor.gilles_forderschnecke_soll
+    - entity: sensor.gilles_aschenaustragung_dauer
+    - entity: sensor.gilles_aschenaustragung_pause
+    - entity: sensor.gilles_zundung_einschub
+    title: Zeiten / Materialfluss
+    type: entities
+  icon: mdi:cog
+  path: parameter
+  title: Parameter
+

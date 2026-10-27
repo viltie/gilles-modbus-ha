@@ -1,0 +1,14 @@
+# Additions on top of the upstream Gilles packages.
+# REG70 = fuel store temperature, x0.1 °C. Verified: raw 159 while the Touch panel
+# showed "Polttoainevaraston lämpötila 16 °C" (2026-10-28). On installations without
+# a fuel store sensor the register stays 0, which is why upstream lists it as unknown.
+template:
+  - sensor:
+      - name: "Gilles Polttoainevaraston lämpötila"
+        unique_id: gilles_polttoainevarasto_lampotila
+        unit_of_measurement: "°C"
+        device_class: temperature
+        state_class: measurement
+        icon: mdi:silo
+        state: "{{ (states('sensor.gilles_reg70') | float * 0.1) | round(1) }}"
+        availability: "{{ states('sensor.gilles_reg70') | is_number }}"
