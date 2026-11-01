@@ -7,13 +7,13 @@ Gilles-hakekattilan (Touch-paneeli, Sigmatek-ohjain) liittäminen Home Assistant
 - asennusskriptin, joka luo kaikki helperit ja automaatiot yhdellä komennolla
 - täysin suomenkielisen kojelaudan, jossa on Touch-paneelin Trendi-näkymää vastaava graafi
 - uusia rekisterilöydöksiä
-- **WhatsApp-hälytykset** ja `!tila`-komennon ([docs/WHATSAPP.md](docs/WHATSAPP.md))
+- **hälytykset Telegramiin tai WhatsAppiin** sekä `/tila`- tai `!tila`-komennon ([docs/TELEGRAM.md](docs/TELEGRAM.md), [docs/WHATSAPP.md](docs/WHATSAPP.md))
 
 Pohjana on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT). Sen rekisterikartta, Modbus-paketit, helperit ja automaatiot ovat tämän repon perusta, ja alkuperäinen projekti on saksankielinen.
 
 ## Asennus paikan päälle
 
-Integraatio ja WhatsApp-hälytykset ovat ilmaisia ja vapaasti käytettävissä. Jos haluat valmiin asennuksen paikan päälle (sisältää minitietokoneen Home Assistantille), katso [Laitehuolto Tiensuu Oy: Gilles-hakekattilan etävalvonta](https://laitehuoltotiensuu.fi/gilles-kattilan-etavalvonta).
+Integraatio sekä Telegram- ja WhatsApp-hälytykset ovat ilmaisia ja vapaasti käytettävissä. Jos haluat valmiin asennuksen paikan päälle (sisältää minitietokoneen Home Assistantille), katso [Laitehuolto Tiensuu Oy: Gilles-hakekattilan etävalvonta](https://laitehuoltotiensuu.fi/gilles-kattilan-etavalvonta).
 
 ## Mitä tämä repo lisää
 
@@ -54,9 +54,13 @@ Kopioi `packages/`-hakemiston tiedostot HA:n konfiguraatiohakemiston `packages/`
 | `gilles_modbus.yaml` | 40 raakasensoria ja tilatemplatet (alkuperäisestä projektista) |
 | `gilles_derived.yaml` | Viimeisimmän käynnistyksen ja REG78-signaalin aikaleimat (alkuperäisestä projektista) |
 | `gilles_local.yaml` | Polttoainevaraston lämpötila ja suomenkieliset tilatekstit (tämä repo) |
-| `gilles_whatsapp.yaml` | Valinnainen: hälytykset WhatsApp-ryhmään WAHA-sillan kautta ja `!tila`-komento (tämä repo, ks. [docs/WHATSAPP.md](docs/WHATSAPP.md)) |
+| `gilles_halytykset.yaml` | Valinnainen: hälytysautomaatiot, jotka lähettävät jokaiseen asennettuun kanavaan (tämä repo). Tarvitaan, jos asennat jommankumman alla olevista |
+| `gilles_telegram.yaml` | Valinnainen, suositeltu: hälytykset Telegramiin HA:n virallisella Telegram bot -integraatiolla ja `/tila`-komento (tämä repo, ks. [docs/TELEGRAM.md](docs/TELEGRAM.md)) |
+| `gilles_whatsapp.yaml` | Valinnainen: hälytykset WhatsApp-ryhmään epävirallisen WAHA-sillan kautta ja `!tila`-komento (tämä repo, ks. [docs/WHATSAPP.md](docs/WHATSAPP.md)) |
 
 Vaihda `gilles_modbus.yaml`:iin kattilasi IP-osoite kohtaan `host: 192.0.2.1`.
+
+**Hälytyskanava:** Telegram on suositeltu: se on ilmainen, virallinen eikä tarvitse erillistä puhelinnumeroa tai SIM-korttia. WhatsApp toimii epävirallisen WAHA-sillan kautta ja vaatii oman WhatsApp-numeron. Kanavia voi käyttää yhtä aikaa: `gilles_halytykset.yaml` lähettää jokaiseen asennettuun kanavaan, ja jos yhtään kanavaa ei ole asennettu tai lähetys epäonnistuu, viesti menee puhelimen HA-ilmoituksena. Jos käytit aiempaa WhatsApp-pakettia, katso [päivitysohje](docs/WHATSAPP.md#päivitys-vanhasta-versiosta).
 
 Jos paketit eivät ole vielä käytössä, lisää `configuration.yaml`:iin olemassa olevan `homeassistant:`-lohkon alle:
 

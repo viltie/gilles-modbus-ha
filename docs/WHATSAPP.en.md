@@ -4,7 +4,11 @@
 
 `packages/gilles_whatsapp.yaml` sends boiler alerts to a WhatsApp group and answers **`!tila`** ("status") in the group. Messages go through a [WAHA](https://waha.devlike.pro) bridge (WhatsApp HTTP API). The package only reads boiler data; it never writes to the boiler. Message texts are in Finnish.
 
+WAHA is an unofficial bridge: it needs its own WhatsApp number, can lose its session, and WhatsApp may in principle block the number. **The recommended channel is [Telegram](TELEGRAM.en.md)**, which uses Home Assistant's official integration and needs no extra number. Both channels can run side by side.
+
 ## Alerts
+
+The alert automations live in `gilles_halytykset.yaml` and send to every installed channel.
 
 | Alert | When |
 |---|---|
@@ -24,6 +28,17 @@ If a WhatsApp send fails (WAHA session dropped), the same message goes to your p
 1. **WAHA** – run it in Docker on the same LAN as Home Assistant (see the Finnish guide for an example `docker run`), start session `default` in the WAHA dashboard and link it to WhatsApp with the QR code (*WhatsApp → Linked devices*). A separate number for alerts is recommended. Do not expose WAHA to the internet.
 2. **Group id** – create a group, add the linked number, and read its `chatId` (`120363…@g.us`) from WAHA's Swagger: `GET /api/default/groups`.
 3. **Webhook for `!tila`** – set the session webhook to `http://HA-ADDRESS:8123/api/webhook/<gilles_whatsapp_webhook>` with event `message.any` (WAHA dashboard session settings, or `PUT /api/sessions/default` → `config.webhooks`). The HA webhook is `local_only`. WAHA forwards every message of the account; the package only reacts to `!tila` in your group and keeps no automation traces.
-4. **Home Assistant** – copy `packages/gilles_whatsapp.yaml` to `packages/` (the other Gilles packages and the setup script's helpers must be installed), add the secrets as in `secrets.example.yaml`, replace `notify.mobile_app_puhelin` with your phone's notify service, check the config and restart.
+4. **Home Assistant** – copy `packages/gilles_halytykset.yaml` and `packages/gilles_whatsapp.yaml` to `packages/` (the other Gilles packages and the setup script's helpers must be installed), add the secrets as in `secrets.example.yaml`, replace `notify.mobile_app_puhelin` in `gilles_halytykset.yaml` with your phone's notify service, check the config and restart.
 
 Test by sending `!tila` in the group.
+
+## Upgrading from the earlier version
+
+Previously everything was in `gilles_whatsapp.yaml`. The alert automations, the phone fallback and the `!tila` status text now live in the shared `gilles_halytykset.yaml`, and `gilles_whatsapp.yaml` only holds the WhatsApp sender and the `!tila` webhook. Secrets are unchanged.
+
+1. Replace `packages/gilles_whatsapp.yaml` with the new version and add `packages/gilles_halytykset.yaml` next to it. Both are needed: the new WhatsApp package calls scripts from the shared one.
+2. Move your phone's notify service (`notify.mobile_app_puhelin`) into `gilles_halytykset.yaml`.
+3. Check the config and restart HA.
+4. The five old automations (`automation.gilles_whatsapp_yhteys_kattilaan` etc.) remain in the entity registry as *unavailable*; delete them under *Settings → Automations*. The new ones are named *Gilles-hälytys …*. The `!tila` automation is unchanged.
+
+Telegram can be added alongside at any time with `gilles_telegram.yaml` ([TELEGRAM.en.md](TELEGRAM.en.md)).

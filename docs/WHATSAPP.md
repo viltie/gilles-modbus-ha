@@ -4,7 +4,11 @@
 
 `packages/gilles_whatsapp.yaml` lähettää kattilan hälytykset WhatsApp-ryhmään ja vastaa ryhmässä komentoon **`!tila`**. Viestit kulkevat [WAHA](https://waha.devlike.pro)-sillan (WhatsApp HTTP API) kautta. Paketti vain lukee kattilan tietoja, se ei kirjoita kattilalle mitään.
 
+WAHA on epävirallinen silta: se tarvitsee oman WhatsApp-numeron ja voi katketa, ja WhatsApp voi periaatteessa estää numeron. **Suositeltu tapa on [Telegram](TELEGRAM.md)**, joka toimii Home Assistantin virallisella integraatiolla ilman erillistä numeroa. Kanavia voi käyttää myös rinnakkain.
+
 ## Hälytykset
+
+Hälytysautomaatiot ovat paketissa `gilles_halytykset.yaml`, ja ne lähettävät jokaiseen asennettuun kanavaan.
 
 | Hälytys | Milloin |
 |---|---|
@@ -55,9 +59,20 @@ Tämän voi tehdä WAHA:n hallintapaneelissa istunnon asetuksista tai Swaggeriss
 
 ### 4. Home Assistant
 
-1. Kopioi `packages/gilles_whatsapp.yaml` HA:n `packages/`-kansioon (muut Gilles-paketit ja asennusskriptin helperit pitää olla asennettu).
+1. Kopioi `packages/gilles_halytykset.yaml` ja `packages/gilles_whatsapp.yaml` HA:n `packages/`-kansioon (muut Gilles-paketit ja asennusskriptin helperit pitää olla asennettu).
 2. Lisää `secrets.yaml`:iin arvot mallin `secrets.example.yaml` mukaan.
-3. Vaihda tiedostosta `notify.mobile_app_puhelin` oman puhelimesi ilmoituspalveluksi.
+3. Vaihda `gilles_halytykset.yaml`:sta `notify.mobile_app_puhelin` oman puhelimesi ilmoituspalveluksi.
 4. Tarkista konfiguraatio ja käynnistä HA uudelleen.
 
 Testaa kirjoittamalla ryhmään `!tila`.
+
+## Päivitys vanhasta versiosta
+
+Aiemmin kaikki oli yhdessä tiedostossa `gilles_whatsapp.yaml`. Nyt hälytysautomaatiot, varailmoitus puhelimeen ja `!tila`-tilaviesti ovat yhteisessä paketissa `gilles_halytykset.yaml`, ja `gilles_whatsapp.yaml` sisältää vain WhatsApp-lähetyksen ja `!tila`-webhookin. Secrets pysyvät ennallaan.
+
+1. Korvaa `packages/gilles_whatsapp.yaml` uudella versiolla ja lisää rinnalle `packages/gilles_halytykset.yaml`. Molemmat tarvitaan: uusi WhatsApp-paketti kutsuu yhteisen paketin skriptejä.
+2. Siirrä oma puhelimen ilmoituspalvelusi (`notify.mobile_app_puhelin`) `gilles_halytykset.yaml`:iin.
+3. Tarkista konfiguraatio ja käynnistä HA uudelleen.
+4. Vanhat automaatiot (`automation.gilles_whatsapp_yhteys_kattilaan` ym., 5 kpl) jäävät entiteettirekisteriin tilaan *ei käytettävissä*. Poista ne kohdasta *Asetukset → Automaatiot*. Uudet ovat nimeltään *Gilles-hälytys …*. `!tila`-automaatio pysyy samana.
+
+Telegramin voi ottaa käyttöön rinnalle milloin tahansa lisäämällä `gilles_telegram.yaml`:n ([TELEGRAM.md](TELEGRAM.md)).

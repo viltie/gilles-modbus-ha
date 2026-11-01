@@ -7,13 +7,13 @@ Connects a Gilles wood chip boiler (Touch panel, Sigmatek controller) to Home As
 - an installer script that creates all helpers and automations with one command
 - a fully Finnish dashboard, including a graph that mirrors the Touch panel's Trend view
 - new register findings
-- **WhatsApp alerts** and a `!tila` status command ([docs/WHATSAPP.en.md](docs/WHATSAPP.en.md))
+- **alerts to Telegram or WhatsApp** and a `/tila` / `!tila` status command ([docs/TELEGRAM.en.md](docs/TELEGRAM.en.md), [docs/WHATSAPP.en.md](docs/WHATSAPP.en.md))
 
 It builds on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT). Its register map, Modbus packages, helpers and automations are the foundation of this repository; the upstream project is in German.
 
 ## On-site installation (Finland)
 
-The integration and WhatsApp alerts are free to use. For a ready on-site installation in Finland (including a mini PC for Home Assistant), see [Laitehuolto Tiensuu Oy: Gilles boiler monitoring](https://laitehuoltotiensuu.fi/en/gilles-boiler-monitoring).
+The integration and the Telegram and WhatsApp alerts are free to use. For a ready on-site installation in Finland (including a mini PC for Home Assistant), see [Laitehuolto Tiensuu Oy: Gilles boiler monitoring](https://laitehuoltotiensuu.fi/en/gilles-boiler-monitoring).
 
 ## What this repository adds
 
@@ -54,9 +54,13 @@ Copy the files in `packages/` to the `packages/` folder of your HA configuration
 | `gilles_modbus.yaml` | 40 raw sensors and state templates (upstream) |
 | `gilles_derived.yaml` | Timestamps of the last burner start and REG78 signal (upstream) |
 | `gilles_local.yaml` | Fuel store temperature and Finnish status texts (this repository) |
-| `gilles_whatsapp.yaml` | Optional: alerts to a WhatsApp group via a WAHA bridge and a `!tila` status command (this repo, see [docs/WHATSAPP.en.md](docs/WHATSAPP.en.md)) |
+| `gilles_halytykset.yaml` | Optional: alert automations that send to every installed channel (this repo). Required if you install either of the two below |
+| `gilles_telegram.yaml` | Optional, recommended: alerts to Telegram via HA's official Telegram bot integration and a `/tila` status command (this repo, see [docs/TELEGRAM.en.md](docs/TELEGRAM.en.md)) |
+| `gilles_whatsapp.yaml` | Optional: alerts to a WhatsApp group via the unofficial WAHA bridge and a `!tila` status command (this repo, see [docs/WHATSAPP.en.md](docs/WHATSAPP.en.md)) |
 
 Set your boiler's IP address in `gilles_modbus.yaml` (`host: 192.0.2.1`).
+
+**Alert channel:** Telegram is recommended: free, official, and no extra phone number or SIM card needed. WhatsApp goes through the unofficial WAHA bridge and needs its own WhatsApp number. Both can run at once: `gilles_halytykset.yaml` sends to every installed channel, and if no channel is installed or a send fails, the message goes to your phone as an HA notification. If you used the earlier WhatsApp package, see the [upgrade note](docs/WHATSAPP.en.md#upgrading-from-the-earlier-version).
 
 If packages are not enabled yet, add this under your existing `homeassistant:` block in `configuration.yaml`:
 

@@ -1,0 +1,199 @@
+# Gilles alerts, independent of the message channel. Nothing here writes to the boiler.
+# Install this together with one or both channel packages:
+#   gilles_telegram.yaml  - Telegram bot (official Home Assistant integration), see docs/TELEGRAM.md
+#   gilles_whatsapp.yaml  - WhatsApp through a WAHA bridge, see docs/WHATSAPP.md
+# script.gilles_halytys sends to every channel package that is installed. Without any channel, and
+# whenever a channel fails to send, the message goes to the phone instead: replace
+# notify.mobile_app_puhelin below with your own phone's notify service.
+
+script:
+  gilles_halytys:
+    alias: Gilles-hälytys
+    description: Sends the message to every installed channel (Telegram, WhatsApp), or to the phone if there is none.
+    mode: queued
+    max: 10
+    fields:
+      message:
+        description: Message text
+    sequence:
+      # A channel counts as installed when its script exists. The action of a missing script is never
+      # called, so installing only one channel package is fine.
+      - parallel:
+          - if:
+              - condition: template
+                value_template: "{{ has_value('script.gilles_telegram_viesti') }}"
+            then:
+              - action: script.gilles_telegram_viesti
+                data:
+                  message: "{{ message }}"
+          - if:
+              - condition: template
+                value_template: "{{ has_value('script.gilles_whatsapp_viesti') }}"
+            then:
+              - action: script.gilles_whatsapp_viesti
+                data:
+                  message: "{{ message }}"
+      - if:
+          - condition: template
+            value_template: >-
+              {{ not has_value('script.gilles_telegram_viesti')
+                 and not has_value('script.gilles_whatsapp_viesti') }}
+        then:
+          - action: script.gilles_varailmoitus
+            data:
+              title: Gilles-hälytys
+              message: "{{ message }}"
+
+  # The only place that names the phone. The channel scripts call this when their send fails.
+  gilles_varailmoitus:
+    alias: Gilles-varailmoitus puhelimeen
+    mode: queued
+    max: 10
+    fields:
+      title:
+        description: Notification title
+      message:
+        description: Message text
+    sequence:
+      - action: notify.mobile_app_puhelin
+        data:
+          title: "{{ title }}"
+          message: "{{ message }}"
+        continue_on_error: true
+
+  # Status text for the !tila command of every channel. Returns {"teksti": "..."}.
+  gilles_tilaviesti:
+    alias: Gilles-tilaviesti
+    mode: parallel
+    sequence:
+      - variables:
+          tulos:
+            teksti: >-
+              {% if is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on') %}🔥 Gilles nyt
+              {%- else %}⚠️ Ei täydellistä yhteyttä kattilaan, arvot voivat puuttua
+              {%- endif %}
+
+              Tila: {{ states('sensor.gilles_polttovaihe') }}, {{ states('sensor.gilles_kattilan_tila') }}
+
+              Laitteisto: {{ states('sensor.gilles_laitteiston_tila') }}
+
+              Kattila: {{ states('sensor.gilles_kesseltemperatur') }} °C
+
+              Savukaasu: {{ states('sensor.gilles_abgastemperatur') }} °C
+
+              Paluuvesi: {{ states('sensor.gilles_rucklauftemperatur') }} °C
+
+              Jäännöshappi: {{ states('sensor.gilles_o2_ist') }} %
+
+              Polttoainevarasto: {{ states('sensor.gilles_polttoainevaraston_lampotila') }} °C
+
+              Käynnistyksiä 24 h: {{ states('sensor.gilles_brennstarts_24h') }}
+      - stop: Tilaviesti valmis
+        response_variable: tulos
+
+automation:
+  - alias: Gilles-hälytys yhteys kattilaan
+    id: gilles_halytys_yhteys
+    description: Alerts once after 10 min without complete Modbus data, and again when the data returns.
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.gilles_messdaten_verfuegbar
+        to: "off"
+        for: "00:10:00"
+    actions:
+      - action: script.gilles_halytys
+        data:
+          message: "🔴 Gilles: yhteys kattilaan on poikki yli 10 minuuttia. Kattilan tilaa ei nähdä."
+      - wait_for_trigger:
+          - trigger: state
+            entity_id: binary_sensor.gilles_messdaten_verfuegbar
+            to: "on"
+      - action: script.gilles_halytys
+        data:
+          message: "🟢 Gilles: yhteys kattilaan palautui. Tila: {{ states('sensor.gilles_polttovaihe') }}, kattila {{ states('sensor.gilles_kesseltemperatur') }} °C."
+
+  # binary_sensor.gilles_temperaturanstieg_fehlt went on 13 times in normal running between
+  # 2026-10-27 and 2026-10-31, longest 19.7 min, so it needs a longer delay than the others.
+  - alias: Gilles-hälytys käynnistysongelma
+    id: gilles_halytys_kaynnistys
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.gilles_startphase_zu_lang
+        from: "off"
+        to: "on"
+        id: sytytys
+      - trigger: state
+        entity_id: binary_sensor.gilles_temperaturanstieg_fehlt
+        from: "off"
+        to: "on"
+        for: "00:25:00"
+        id: lampotila
+    actions:
+      - action: script.gilles_halytys
+        data:
+          message: >-
+            {% if trigger.id == 'sytytys' %}🟠 Gilles: sytytysvaihe on kestänyt yli {{ states('input_number.gilles_zuenddauer_warnschwelle') | int }} minuuttia.
+            {%- else %}🟠 Gilles: kattilan lämpötila ei nouse käynnistyksen jälkeen.
+            {%- endif %} Tila: {{ states('sensor.gilles_polttovaihe') }}, kattila {{ states('sensor.gilles_kesseltemperatur') }} °C.
+
+  - alias: Gilles-hälytys tiheät käynnistykset
+    id: gilles_halytys_tiheat
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.gilles_haeufige_brennstarts
+        from: "off"
+        to: "on"
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ this.attributes.last_triggered is none
+             or now() - this.attributes.last_triggered > timedelta(hours=12) }}
+    actions:
+      - action: script.gilles_halytys
+        data:
+          message: "🟠 Gilles: {{ states('sensor.gilles_brennstarts_24h') | int }} käynnistystä 24 tunnissa (raja {{ states('input_number.gilles_brennstarts_warnschwelle') | int }})."
+
+  # Neither of these exists upstream. REG46 = 31 appeared on 2026-11-01 when the burner dropped from
+  # late ignition to standby, and the boiler cooled from 65 to 43 °C overnight without any earlier alert.
+  - alias: Gilles-hälytys sytytys keskeytyi
+    id: gilles_halytys_sytytys_keskeytyi
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: sensor.gilles_status_bitmap
+        to: "31"
+        id: "31"
+      # REG46 = 34 held from 21:41 until the next morning's start on 2026-11-01. The panel
+      # probably showed "Ei tulta" then, by the owner's memory; not compared at the same moment.
+      - trigger: state
+        entity_id: sensor.gilles_status_bitmap
+        to: "34"
+        id: "34"
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ this.attributes.last_triggered is none
+             or now() - this.attributes.last_triggered > timedelta(hours=1) }}
+    actions:
+      - action: script.gilles_halytys
+        data:
+          message: >-
+            {% if trigger.id == '34' %}🔴 Gilles: kattila sammui, todennäköisesti "Ei tulta" (tilakoodi 34). Se ei välttämättä käynnisty itsestään.
+            {%- else %}🟠 Gilles: käynnistys keskeytyi (tilakoodi 31).
+            {%- endif %} Kattila {{ states('sensor.gilles_kesseltemperatur') }} °C.
+
+  - alias: Gilles-hälytys kattila kylmenee
+    id: gilles_halytys_kylmenee
+    mode: single
+    triggers:
+      - trigger: numeric_state
+        entity_id: sensor.gilles_kesseltemperatur
+        below: 50
+        for: "00:15:00"
+    actions:
+      - action: script.gilles_halytys
+        data:
+          message: "🔴 Gilles: kattila on jäähtynyt alle 50 °C ({{ states('sensor.gilles_kesseltemperatur') }} °C). Tila: {{ states('sensor.gilles_polttovaihe') }}, {{ states('sensor.gilles_kattilan_tila') }}."

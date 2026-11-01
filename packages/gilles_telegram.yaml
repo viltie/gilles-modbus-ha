@@ -1,0 +1,74 @@
+# Gilles alerts to Telegram through Home Assistant's own Telegram bot integration. Nothing here writes to the boiler.
+# Needs packages/gilles_halytykset.yaml, which holds the alert automations and calls script.gilles_telegram_viesti.
+# Set up the Telegram bot integration in the UI first (Settings > Devices & services, platform "Polling") and add
+# the chat as an allowed chat ID there. Needs in secrets.yaml: gilles_telegram_chat_id, the same chat ID
+# (a group's ID is negative). See docs/TELEGRAM.md.
+# Uses the chat_id field of telegram_bot.send_message (HA 2026.6+; it replaces the older target field).
+
+script:
+  gilles_telegram_viesti:
+    alias: Gilles Telegram-viesti
+    description: Sends to the Telegram chat. A failed send falls back to the phone.
+    mode: queued
+    max: 5
+    fields:
+      message:
+        description: Message text
+    sequence:
+      - action: telegram_bot.send_message
+        data:
+          chat_id: !secret gilles_telegram_chat_id
+          message: "{{ message }}"
+          parse_mode: plain_text
+        response_variable: vastaus
+        continue_on_error: true
+      - if:
+          - condition: template
+            value_template: "{{ vastaus is not defined or not vastaus.chats | default([]) }}"
+        then:
+          - action: script.gilles_varailmoitus
+            data:
+              title: Telegram-lähetys epäonnistui
+              message: "{{ message }}"
+
+automation:
+  # The integration only passes on messages from allowed chat IDs, and it also lets through a person
+  # whose own ID is allowed when they write in some other chat. So the chat is checked here as well.
+  # In a group the bot sees /tila always, but !tila only with privacy mode off (docs/TELEGRAM.md).
+  - alias: Gilles Telegram tila-komento
+    id: gilles_telegram_tila
+    description: Answers /tila or !tila in the allowed chat with the boiler status. Read only.
+    mode: single
+    max_exceeded: silent
+    trace:
+      stored_traces: 0
+    variables:
+      sallitut: !secret gilles_telegram_chat_id
+    triggers:
+      - trigger: event
+        event_type: telegram_command
+      - trigger: event
+        event_type: telegram_text
+    conditions:
+      - condition: template
+        value_template: >-
+          {% set d = trigger.event.data %}
+          {% set ids = (sallitut if sallitut is iterable and sallitut is not string else [sallitut])
+                       | map('int', 0) | list %}
+          {% set sana = (d.command if trigger.event.event_type == 'telegram_command' else d.text)
+                        | default('', true) | string | trim | lower %}
+          {{ d.chat_id | int(0) in ids and sana.split('@')[0] in ['/tila', '!tila'] }}
+      - condition: template
+        value_template: >-
+          {{ this.attributes.last_triggered is none
+             or now() - this.attributes.last_triggered > timedelta(seconds=30) }}
+    actions:
+      - action: script.gilles_tilaviesti
+        response_variable: tila
+      # Reply through the bot that received the command, so this also works with several bots.
+      - action: telegram_bot.send_message
+        data:
+          config_entry_id: "{{ trigger.event.data.bot.config_entry_id }}"
+          chat_id: "{{ trigger.event.data.chat_id }}"
+          message: "{{ tila.teksti }}"
+          parse_mode: plain_text
