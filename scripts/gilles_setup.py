@@ -105,7 +105,20 @@ async def run_flow(ha, domain, values, menu_choice):
     raise RuntimeError("config flow did not finish")
 
 
+# Units of the upstream counters are German/English; the Finnish dashboard shows "kpl".
+UNIT_FI = {"Starts": "kpl", "Vorgänge": "kpl"}
+
+
+def localize_units(obj):
+    if isinstance(obj, dict):
+        return {k: (UNIT_FI.get(v, v) if k == "unit_of_measurement" else localize_units(v)) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [localize_units(v) for v in obj]
+    return obj
+
+
 async def create_helper(ha, p):
+    p = localize_units(p)
     htype = p.get("helper_type") or p.get("domain")
     if htype in STORAGE_HELPERS:
         data = {WS_KEYS.get(k, k): v for k, v in p.items() if k != "helper_type"}
