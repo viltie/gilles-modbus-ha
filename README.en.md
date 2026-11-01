@@ -11,6 +11,10 @@ Connects a Gilles wood chip boiler (Touch panel, Sigmatek controller) to Home As
 
 It builds on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT). Its register map, Modbus packages, helpers and automations are the foundation of this repository; the upstream project is in German.
 
+## On-site installation (Finland)
+
+The integration and WhatsApp alerts are free to use. For a ready on-site installation in Finland (including a mini PC for Home Assistant), see [Laitehuolto Tiensuu Oy: Gilles boiler monitoring](https://laitehuoltotiensuu.fi/en/gilles-boiler-monitoring).
+
 ## What this repository adds
 
 - **Fuel store temperature** (REG70). Upstream lists this register as unknown.
