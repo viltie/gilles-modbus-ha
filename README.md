@@ -11,6 +11,10 @@ Gilles-hakekattilan (Touch-paneeli, Sigmatek-ohjain) liittäminen Home Assistant
 
 Pohjana on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT). Sen rekisterikartta, Modbus-paketit, helperit ja automaatiot ovat tämän repon perusta, ja alkuperäinen projekti on saksankielinen.
 
+## Asennus paikan päälle
+
+Integraatio ja WhatsApp-hälytykset ovat ilmaisia ja vapaasti käytettävissä. Jos haluat valmiin asennuksen paikan päälle (sisältää minitietokoneen Home Assistantille), katso [Laitehuolto Tiensuu Oy: Gilles-hakekattilan etävalvonta](https://laitehuoltotiensuu.fi/gilles-kattilan-etavalvonta).
+
 ## Mitä tämä repo lisää
 
 - **Polttoainevaraston lämpötila** (REG70). Alkuperäisessä projektissa tämä rekisteri on tuntematon.
