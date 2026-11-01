@@ -7,6 +7,7 @@ Connects a Gilles wood chip boiler (Touch panel, Sigmatek controller) to Home As
 - an installer script that creates all helpers and automations with one command
 - a fully Finnish dashboard, including a graph that mirrors the Touch panel's Trend view
 - new register findings
+- **WhatsApp alerts** and a `!tila` status command ([docs/WHATSAPP.en.md](docs/WHATSAPP.en.md))
 
 It builds on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT). Its register map, Modbus packages, helpers and automations are the foundation of this repository; the upstream project is in German.
 
@@ -49,6 +50,7 @@ Copy the files in `packages/` to the `packages/` folder of your HA configuration
 | `gilles_modbus.yaml` | 40 raw sensors and state templates (upstream) |
 | `gilles_derived.yaml` | Timestamps of the last burner start and REG78 signal (upstream) |
 | `gilles_local.yaml` | Fuel store temperature and Finnish status texts (this repository) |
+| `gilles_whatsapp.yaml` | Optional: alerts to a WhatsApp group via a WAHA bridge and a `!tila` status command (this repo, see [docs/WHATSAPP.en.md](docs/WHATSAPP.en.md)) |
 
 Set your boiler's IP address in `gilles_modbus.yaml` (`host: 192.0.2.1`).
 

@@ -1,0 +1,196 @@
+# Gilles alerts to a WhatsApp group through a WAHA bridge (https://waha.devlike.pro). Nothing here writes to the boiler.
+# Needs in secrets.yaml: gilles_whatsapp_url, gilles_whatsapp_api_key, gilles_whatsapp_group, gilles_whatsapp_webhook
+# (see secrets.example.yaml in the repo root and docs/WHATSAPP.md). Replace notify.mobile_app_puhelin below with your own phone's notify service.
+rest_command:
+  gilles_whatsapp:
+    url: !secret gilles_whatsapp_url
+    method: POST
+    headers:
+      X-Api-Key: !secret gilles_whatsapp_api_key
+    content_type: application/json
+    payload: "{{ {'session': 'default', 'chatId': chat_id, 'text': message} | to_json }}"
+    timeout: 20
+
+script:
+  gilles_whatsapp_viesti:
+    alias: Gilles WhatsApp-viesti
+    description: Sends to the group. The bridge can lose its session, so a failed send falls back to the phone.
+    mode: queued
+    max: 5
+    fields:
+      message:
+        description: Message text
+    sequence:
+      - action: rest_command.gilles_whatsapp
+        data:
+          chat_id: !secret gilles_whatsapp_group
+          message: "{{ message }}"
+        response_variable: vastaus
+        continue_on_error: true
+      - if:
+          - condition: template
+            value_template: "{{ vastaus is not defined or vastaus.status | default(0) not in [200, 201] }}"
+        then:
+          - action: notify.mobile_app_puhelin
+            data:
+              title: WhatsApp-lähetys epäonnistui
+              message: "{{ message }}"
+
+automation:
+  - alias: Gilles WhatsApp yhteys kattilaan
+    id: gilles_whatsapp_yhteys
+    description: Alerts once after 10 min without complete Modbus data, and again when the data returns.
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.gilles_messdaten_verfuegbar
+        to: "off"
+        for: "00:10:00"
+    actions:
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: "🔴 Gilles: yhteys kattilaan on poikki yli 10 minuuttia. Kattilan tilaa ei nähdä."
+      - wait_for_trigger:
+          - trigger: state
+            entity_id: binary_sensor.gilles_messdaten_verfuegbar
+            to: "on"
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: "🟢 Gilles: yhteys kattilaan palautui. Tila: {{ states('sensor.gilles_polttovaihe') }}, kattila {{ states('sensor.gilles_kesseltemperatur') }} °C."
+
+  # binary_sensor.gilles_temperaturanstieg_fehlt went on 13 times in normal running between
+  # 2026-10-27 and 2026-10-31, longest 19.7 min, so it needs a longer delay than the others.
+  - alias: Gilles WhatsApp käynnistysongelma
+    id: gilles_whatsapp_kaynnistys
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.gilles_startphase_zu_lang
+        from: "off"
+        to: "on"
+        id: sytytys
+      - trigger: state
+        entity_id: binary_sensor.gilles_temperaturanstieg_fehlt
+        from: "off"
+        to: "on"
+        for: "00:25:00"
+        id: lampotila
+    actions:
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: >-
+            {% if trigger.id == 'sytytys' %}🟠 Gilles: sytytysvaihe on kestänyt yli {{ states('input_number.gilles_zuenddauer_warnschwelle') | int }} minuuttia.
+            {%- else %}🟠 Gilles: kattilan lämpötila ei nouse käynnistyksen jälkeen.
+            {%- endif %} Tila: {{ states('sensor.gilles_polttovaihe') }}, kattila {{ states('sensor.gilles_kesseltemperatur') }} °C.
+
+  - alias: Gilles WhatsApp tiheät käynnistykset
+    id: gilles_whatsapp_tiheat
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: binary_sensor.gilles_haeufige_brennstarts
+        from: "off"
+        to: "on"
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ this.attributes.last_triggered is none
+             or now() - this.attributes.last_triggered > timedelta(hours=12) }}
+    actions:
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: "🟠 Gilles: {{ states('sensor.gilles_brennstarts_24h') | int }} käynnistystä 24 tunnissa (raja {{ states('input_number.gilles_brennstarts_warnschwelle') | int }})."
+
+  # Neither of these exists upstream. REG46 = 31 appeared on 2026-11-01 when the burner dropped from
+  # late ignition to standby, and the boiler cooled from 65 to 43 °C overnight without any earlier alert.
+  - alias: Gilles WhatsApp sytytys keskeytyi
+    id: gilles_whatsapp_sytytys_keskeytyi
+    mode: single
+    triggers:
+      - trigger: state
+        entity_id: sensor.gilles_status_bitmap
+        to: "31"
+        id: "31"
+      # REG46 = 34 held from 21:41 until the next morning's start on 2026-11-01. The panel
+      # probably showed "Ei tulta" then, by the owner's memory; not compared at the same moment.
+      - trigger: state
+        entity_id: sensor.gilles_status_bitmap
+        to: "34"
+        id: "34"
+    conditions:
+      - condition: template
+        value_template: >-
+          {{ this.attributes.last_triggered is none
+             or now() - this.attributes.last_triggered > timedelta(hours=1) }}
+    actions:
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: >-
+            {% if trigger.id == '34' %}🔴 Gilles: kattila sammui, todennäköisesti "Ei tulta" (tilakoodi 34). Se ei välttämättä käynnisty itsestään.
+            {%- else %}🟠 Gilles: käynnistys keskeytyi (tilakoodi 31).
+            {%- endif %} Kattila {{ states('sensor.gilles_kesseltemperatur') }} °C.
+
+  - alias: Gilles WhatsApp kattila kylmenee
+    id: gilles_whatsapp_kylmenee
+    mode: single
+    triggers:
+      - trigger: numeric_state
+        entity_id: sensor.gilles_kesseltemperatur
+        below: 50
+        for: "00:15:00"
+    actions:
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: "🔴 Gilles: kattila on jäähtynyt alle 50 °C ({{ states('sensor.gilles_kesseltemperatur') }} °C). Tila: {{ states('sensor.gilles_polttovaihe') }}, {{ states('sensor.gilles_kattilan_tila') }}."
+
+  # WAHA has no per-chat webhook filter, so every message of the linked account arrives here.
+  # stored_traces: 0 keeps other chats out of the saved traces.
+  - alias: Gilles WhatsApp tila-komento
+    id: gilles_whatsapp_tila
+    description: Answers !tila in the group with the boiler status. Read only.
+    mode: single
+    max_exceeded: silent
+    trace:
+      stored_traces: 0
+    variables:
+      ryhma: !secret gilles_whatsapp_group
+    triggers:
+      - trigger: webhook
+        webhook_id: !secret gilles_whatsapp_webhook
+        allowed_methods:
+          - POST
+        local_only: true
+    conditions:
+      - condition: template
+        value_template: >-
+          {% set p = trigger.json.payload | default({}) %}
+          {{ trigger.json.event | default('') == 'message.any'
+             and ryhma in [p.from | default(''), p.to | default('')]
+             and (p.body | default('', true) | string | trim | lower) == '!tila' }}
+      - condition: template
+        value_template: >-
+          {{ this.attributes.last_triggered is none
+             or now() - this.attributes.last_triggered > timedelta(seconds=30) }}
+    actions:
+      - action: script.gilles_whatsapp_viesti
+        data:
+          message: >-
+            {% if is_state('binary_sensor.gilles_messdaten_verfuegbar', 'on') %}🔥 Gilles nyt
+            {%- else %}⚠️ Ei täydellistä yhteyttä kattilaan, arvot voivat puuttua
+            {%- endif %}
+
+            Tila: {{ states('sensor.gilles_polttovaihe') }}, {{ states('sensor.gilles_kattilan_tila') }}
+
+            Laitteisto: {{ states('sensor.gilles_laitteiston_tila') }}
+
+            Kattila: {{ states('sensor.gilles_kesseltemperatur') }} °C
+
+            Savukaasu: {{ states('sensor.gilles_abgastemperatur') }} °C
+
+            Paluuvesi: {{ states('sensor.gilles_rucklauftemperatur') }} °C
+
+            Jäännöshappi: {{ states('sensor.gilles_o2_ist') }} %
+
+            Polttoainevarasto: {{ states('sensor.gilles_polttoainevaraston_lampotila') }} °C
+
+            Käynnistyksiä 24 h: {{ states('sensor.gilles_brennstarts_24h') }}

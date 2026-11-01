@@ -7,6 +7,7 @@ Gilles-hakekattilan (Touch-paneeli, Sigmatek-ohjain) liittäminen Home Assistant
 - asennusskriptin, joka luo kaikki helperit ja automaatiot yhdellä komennolla
 - täysin suomenkielisen kojelaudan, jossa on Touch-paneelin Trendi-näkymää vastaava graafi
 - uusia rekisterilöydöksiä
+- **WhatsApp-hälytykset** ja `!tila`-komennon ([docs/WHATSAPP.md](docs/WHATSAPP.md))
 
 Pohjana on [mschabhuettl/gilles-hpk-ra-modbus](https://github.com/mschabhuettl/gilles-hpk-ra-modbus) (MIT). Sen rekisterikartta, Modbus-paketit, helperit ja automaatiot ovat tämän repon perusta, ja alkuperäinen projekti on saksankielinen.
 
@@ -49,6 +50,7 @@ Kopioi `packages/`-hakemiston tiedostot HA:n konfiguraatiohakemiston `packages/`
 | `gilles_modbus.yaml` | 40 raakasensoria ja tilatemplatet (alkuperäisestä projektista) |
 | `gilles_derived.yaml` | Viimeisimmän käynnistyksen ja REG78-signaalin aikaleimat (alkuperäisestä projektista) |
 | `gilles_local.yaml` | Polttoainevaraston lämpötila ja suomenkieliset tilatekstit (tämä repo) |
+| `gilles_whatsapp.yaml` | Valinnainen: hälytykset WhatsApp-ryhmään WAHA-sillan kautta ja `!tila`-komento (tämä repo, ks. [docs/WHATSAPP.md](docs/WHATSAPP.md)) |
 
 Vaihda `gilles_modbus.yaml`:iin kattilasi IP-osoite kohtaan `host: 192.0.2.1`.
 
